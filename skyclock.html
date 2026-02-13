@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cinematic Sky Clock</title>
+
+  <style>
+    /* --- Consistency reset --- */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; width: 100%; }
+    body { margin: 0; }
+
+    /* =========================================================
+       Fonts (GitHub Pages-friendly)
+       Put your fonts in: /fonts/
+       - DrukCond-Super.woff2 (optional but recommended)
+       - DrukCond-Super.otf
+       - DrukText-Heavy.woff2 (optional but recommended)
+       - DrukText-Heavy.otf
+       ========================================================= */
+
+    @font-face {
+      font-family: "DrukCondSuper";
+      src:
+        url("./fonts/DrukCond-Super.woff2") format("woff2"),
+        url("./fonts/DrukCond-Super.otf") format("opentype");
+      font-weight: 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "DrukTextHeavy";
+      src:
+        url("./fonts/DrukText-Heavy.woff2") format("woff2"),
+        url("./fonts/DrukText-Heavy.otf") format("opentype");
+      font-weight: 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body{
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      font-family:Arial, sans-serif;
+      background:black;
+      transition:background 1.2s linear;
+      position:relative;
+    }
+
+    /* ---------- Clock ---------- */
+    .clock{
+      position:relative;
+      border-radius:50%;
+      background:rgba(255,255,255,0.18);
+      backdrop-filter:blur(18px);
+      border:6px solid rgba(255,255,255,0.75);
+      box-shadow:
+        0 24px 70px rgba(0,0,0,0.45),
+        0 0 50px rgba(0,0,0,0.35),
+        inset 0 0 28px rgba(255,255,255,0.22),
+        inset 0 0 10px rgba(255,255,255,0.08);
+      z-index:5;
+    }
+
+    .clock::before{
+      content:"";
+      position:absolute;
+      inset:10px;
+      border-radius:50%;
+      border:1px solid rgba(255,255,255,0.18);
+      box-shadow:
+        inset 0 0 18px rgba(255,255,255,0.08),
+        inset 0 0 2px rgba(255,255,255,0.12);
+      pointer-events:none;
+    }
+
+    .clock::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 30% 20%,
+          rgba(255,255,255,0.22),
+          rgba(255,255,255,0.08) 28%,
+          rgba(255,255,255,0.02) 45%,
+          rgba(255,255,255,0) 60%),
+        radial-gradient(circle at 70% 85%,
+          rgba(0,0,0,0.12),
+          rgba(0,0,0,0) 55%);
+      pointer-events:none;
+    }
+
+    .center-dot{
+      position:absolute;
+      background:white;
+      border-radius:50%;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      z-index:10;
+    }
+
+    .hand{
+      position:absolute;
+      bottom:50%;
+      left:50%;
+      transform-origin:bottom center;
+      transform:translateX(-50%);
+    }
+
+    .hour-hand{ background:white; border-radius:4px; }
+    .minute-hand{ background:white; border-radius:3px; }
+
+    /* ---------- Clock Numbers ---------- */
+    .clock-number{
+      position:absolute;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      color:white;
+      font-weight:900;
+      transform:translate(-50%,-50%);
+      cursor:pointer;
+      border-radius:50%;
+      user-select:none;
+      text-decoration:none;
+      font-family:"DrukTextHeavy", Arial, sans-serif;
+    }
+
+    @keyframes pulse{
+      0%   { transform:translate(-50%,-50%) scale(1); color:white; text-shadow:none; }
+      50%  { transform:translate(-50%,-50%) scale(1.15); color:#FFD700; text-shadow:0 0 5px #FFD700,0 0 10px #FFA500; }
+      100% { transform:translate(-50%,-50%) scale(1); color:white; text-shadow:none; }
+    }
+
+    .clock-number.pulsing{ animation:pulse 0.4s ease; }
+    .clock-number:hover{ background:rgba(255,255,255,0.10); }
+    .clock-number:active{ transform:translate(-50%,-50%) scale(0.98); }
+
+    /* ---------- Headline ---------- */
+    h1{
+      font-family:"DrukCondSuper", sans-serif;
+      font-weight:900;
+      color:white;
+      text-align:center;
+      letter-spacing:2px;
+      line-height:1.1;
+      text-shadow:3px 3px 12px rgba(0,0,0,0.7);
+      pointer-events:none;
+      display:inline-block;
+      transform-origin:center bottom;
+      transition:text-shadow 0.5s linear, color 0.5s linear;
+      white-space:nowrap;
+      margin:0;
+      font-size:clamp(84px, 9.2vw, 140px);
+      position:absolute;
+      left:50%;
+      translate:-50% 0;
+    }
+    @media (max-width: 520px){ h1{ white-space:normal; } }
+
+    /* ---------- Celestial Bodies ---------- */
+    .sun,.moon{
+      position:absolute;
+      border-radius:50%;
+      pointer-events:none;
+      overflow:hidden;
+    }
+
+    .sun{
+      background:
+        radial-gradient(circle at 30% 26%,
+          rgba(255,255,255,0.98),
+          rgba(255,252,215,0.98) 14%,
+          rgba(255,223,90,0.96) 32%,
+          rgba(255,185,45,0.94) 60%,
+          rgba(255,135,15,0.92) 100%);
+      box-shadow:
+        0 0 26px rgba(255,230,120,0.85),
+        0 0 70px rgba(255,170,40,0.58),
+        0 0 130px rgba(255,120,10,0.28);
+    }
+
+    .moon{
+      background:
+        radial-gradient(circle at 28% 24%,
+          rgba(255,255,255,0.97),
+          rgba(242,242,242,0.94) 30%,
+          rgba(212,212,212,0.92) 62%,
+          rgba(188,188,188,0.90) 100%);
+      box-shadow:
+        0 0 18px rgba(255,255,255,0.50),
+        0 0 44px rgba(255,255,255,0.18);
+    }
+
+    /* ---------- Stars ---------- */
+    .stars{
+      position:absolute;
+      width:100%;
+      height:100%;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity 2s ease;
+    }
+    .star{
+      position:absolute;
+      background:white;
+      border-radius:50%;
+      animation:twinkle infinite alternate ease-in-out;
+    }
+    @keyframes twinkle{
+      from{opacity:0.3; transform:scale(0.8);}
+      to{opacity:1; transform:scale(1.3);}
+    }
+
+    /* ---------- Clouds ---------- */
+    .cloud{
+      position:absolute;
+      filter:blur(10px);
+      opacity:0;
+      transition:opacity 2s ease;
+    }
+    .cloud div{
+      position:absolute;
+      background:rgba(255,255,255,0.85);
+      border-radius:50%;
+    }
+
+    /* ---------- Shooting Star ---------- */
+    .shooting-star{
+      position:absolute;
+      width:2px;
+      height:2px;
+      background:white;
+      border-radius:50%;
+      pointer-events:none;
+      opacity:0;
+      box-shadow:0 0 5px white, 0 0 10px white;
+      transition:opacity 0.2s linear;
+    }
+
+    /* ---------- Comet ---------- */
+    .comet{
+      position:absolute;
+      height:2px;
+      pointer-events:none;
+      opacity:0;
+      transform-origin:left center;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(255,255,255,0.0), rgba(255,255,255,0.9), rgba(255,255,255,0.0));
+      filter:drop-shadow(0 0 10px rgba(255,255,255,0.8)) drop-shadow(0 0 18px rgba(255,255,255,0.45));
+    }
+    .comet::after{
+      content:"";
+      position:absolute;
+      left:75%;
+      top:50%;
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      transform:translate(-50%,-50%);
+      background:radial-gradient(circle, rgba(255,255,255,1), rgba(255,255,255,0.35) 55%, rgba(255,255,255,0) 75%);
+      filter:blur(0.2px);
+    }
+
+    /* ---------- Layout / Responsiveness ---------- */
+    :root{
+      --clock-size: min(420px, 78vw);
+      --celestial-size: 82px;
+      --num-size: clamp(48px, calc(var(--clock-size) * 0.145), 70px);
+      --num-font: clamp(24px, calc(var(--clock-size) * 0.072), 34px);
+      --hour-w: clamp(5px, calc(var(--clock-size) * 0.0155), 7.5px);
+      --hour-h: clamp(68px, calc(var(--clock-size) * 0.18), 96px);
+      --min-w: clamp(3px, calc(var(--clock-size) * 0.0102), 4.8px);
+      --min-h: clamp(104px, calc(var(--clock-size) * 0.275), 142px);
+      --dot: clamp(12px, calc(var(--clock-size) * 0.032), 16px);
+    }
+
+    .clock{ width:var(--clock-size); height:var(--clock-size); }
+    .hour-hand{ width:var(--hour-w); height:var(--hour-h); }
+    .minute-hand{ width:var(--min-w); height:var(--min-h); }
+    .center-dot{ width:var(--dot); height:var(--dot); }
+    .clock-number{ width:var(--num-size); height:var(--num-size); font-size:var(--num-font); }
+    .sun,.moon{ width:var(--celestial-size); height:var(--celestial-size); }
+
+    .stage{
+      height:100vh;
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      z-index:6;
+      transform:translateY(-28px);
+    }
+
+    /* headline below the clock */
+    h1{
+      top:calc(50% + (var(--clock-size) / 2) + 54px);
+    }
+    @media (max-height: 720px){
+      h1{ top:calc(50% + (var(--clock-size) / 2) + 34px); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sun"></div>
+  <div class="moon"></div>
+  <div class="stars" id="stars"></div>
+
+  <div class="stage">
+    <div class="clock" id="clock">
+      <div class="hand hour-hand" id="hourHand"></div>
+      <div class="hand minute-hand" id="minuteHand"></div>
+      <div class="center-dot"></div>
+    </div>
+
+    <h1 id="headline">TIME WAITS FOR NO ONE</h1>
+  </div>
+
+  <script>
+    const sun=document.querySelector(".sun");
+    const moon=document.querySelector(".moon");
+    const stars=document.getElementById("stars");
+    const clock=document.getElementById("clock");
+    const hourHand=document.getElementById("hourHand");
+    const minuteHand=document.getElementById("minuteHand");
+    const headline=document.getElementById("headline");
+
+    /* ---------- Create Stars ---------- */
+    for(let i=0;i<200;i++){
+      const s=document.createElement("div");
+      s.classList.add("star");
+      const size=Math.random()*3+1;
+      s.style.width=size+"px";
+      s.style.height=size+"px";
+      s.style.top=Math.random()*100+"vh";
+      s.style.left=Math.random()*100+"vw";
+      s.style.animationDuration=(Math.random()*3+2)+"s";
+      stars.appendChild(s);
+    }
+
+    /* ---------- Create Clock Numbers (no hardcoded 450) ---------- */
+    const numbers=[];
+    const numberAngles=[];
+    for(let n=1;n<=12;n++){
+      const angle=(n-3)*(Math.PI/6);
+      numberAngles.push(angle);
+
+      let num;
+      if(n === 1){
+        num=document.createElement("a");
+        num.href="./timer.html"; // relative for GitHub Pages
+        num.setAttribute("aria-label","Go to timer");
+        num.setAttribute("title","Go to timer");
+      }else{
+        num=document.createElement("div");
+        num.addEventListener("click",()=>{ alert("You clicked hour " + n); });
+      }
+
+      num.classList.add("clock-number");
+      num.textContent=n;
+      clock.appendChild(num);
+      numbers.push(num);
+    }
+
+    function layoutClockNumbers(){
+      const size = clock.clientWidth;
+      const c = size/2;
+      const r = size*0.42;
+      numbers.forEach((num,i)=>{
+        const a = numberAngles[i];
+        num.style.left = (c + r*Math.cos(a)) + "px";
+        num.style.top  = (c + r*Math.sin(a)) + "px";
+      });
+    }
+    layoutClockNumbers();
+    window.addEventListener("resize", layoutClockNumbers);
+
+    /* ---------- Minute-hand triggered pulse ---------- */
+    const pulseCooldown = Array(12).fill(false);
+    function checkMinuteHandPulse(minuteAngle){
+      numbers.forEach((num,i)=>{
+        const diff = Math.abs(minuteAngle - numberAngles[i]);
+        if(diff < 0.17 && !pulseCooldown[i]){
+          num.classList.add("pulsing");
+          pulseCooldown[i] = true;
+          setTimeout(()=>{
+            num.classList.remove("pulsing");
+            pulseCooldown[i] = false;
+          }, 400);
+        }
+      });
+    }
+
+    /* ---------- Clouds ---------- */
+    const clouds=[];
+    function createCloud(){
+      const cloud=document.createElement("div");
+      cloud.classList.add("cloud");
+
+      const size=Math.random()*120+80;
+      cloud.style.width=size+"px";
+      cloud.style.height=size*0.6+"px";
+      cloud.style.top=Math.random()*70+"vh";
+      cloud.style.left=Math.random()*100+"vw";
+
+      for(let i=0;i<5;i++){
+        const puff=document.createElement("div");
+        const s=size*(0.4+Math.random()*0.4);
+        puff.style.width=s+"px";
+        puff.style.height=s+"px";
+        puff.style.left=Math.random()*size*0.8+"px";
+        puff.style.top=Math.random()*size*0.3+"px";
+        cloud.appendChild(puff);
+      }
+
+      document.body.appendChild(cloud);
+      clouds.push({el:cloud,speed:0.05+Math.random()*0.15});
+    }
+    for(let i=0;i<14;i++) createCloud();
+
+    /* ---------- Shooting Stars ---------- */
+    function createShootingStar(){
+      const star = document.createElement("div");
+      star.classList.add("shooting-star");
+      document.body.appendChild(star);
+
+      const startX = Math.random()*window.innerWidth;
+      const startY = Math.random()*window.innerHeight*0.5;
+      const length = 100 + Math.random()*100;
+      const angle = -0.3 + Math.random()*0.6;
+
+      star.style.left = startX + "px";
+      star.style.top = startY + "px";
+      star.style.opacity = 1;
+
+      let step = 0;
+      const steps = 30;
+      const interval = setInterval(()=>{
+        star.style.left = startX + Math.cos(angle)*length*(step/steps) + "px";
+        star.style.top  = startY + Math.sin(angle)*length*(step/steps) + "px";
+        star.style.opacity = 1 - step/steps;
+        step++;
+        if(step > steps){
+          clearInterval(interval);
+          star.remove();
+        }
+      },16);
+    }
+    function randomShootingStars(nightFactor){
+      if(Math.random() < 0.01 * nightFactor){ createShootingStar(); }
+    }
+
+    /* ---------- Random Comets (night only) ---------- */
+    function createComet(){
+      const comet = document.createElement("div");
+      comet.classList.add("comet");
+      document.body.appendChild(comet);
+
+      const startSide = Math.random() < 0.5 ? "left" : "right";
+      const startX = startSide === "left" ? -200 : window.innerWidth + 200;
+      const startY = Math.random() * window.innerHeight * 0.45;
+
+      const endX = startSide === "left" ? window.innerWidth + 260 : -260;
+      const endY = startY + (Math.random() * 180 + 80);
+
+      const dx = endX - startX;
+      const dy = endY - startY;
+      const angleRad = Math.atan2(dy, dx);
+      const angleDeg = angleRad * 180 / Math.PI;
+
+      const length = 220 + Math.random()*320;
+      const duration = 900 + Math.random()*900;
+      const thickness = 2 + Math.random()*1.2;
+
+      comet.style.width = length + "px";
+      comet.style.height = thickness + "px";
+      comet.style.left = startX + "px";
+      comet.style.top = startY + "px";
+      comet.style.opacity = 0;
+      comet.style.transform = `rotate(${angleDeg}deg)`;
+
+      comet.animate([{opacity:0}, {opacity:1}], {duration:120, fill:"forwards", easing:"linear"});
+
+      const travel = comet.animate(
+        [
+          { transform:`translate(0px, 0px) rotate(${angleDeg}deg)`, opacity:1 },
+          { transform:`translate(${dx}px, ${dy}px) rotate(${angleDeg}deg)`, opacity:0 }
+        ],
+        {duration, easing:"cubic-bezier(0.2, 0.8, 0.2, 1)", fill:"forwards"}
+      );
+
+      travel.onfinish = ()=> comet.remove();
+    }
+    function randomComets(nightFactor){
+      if(Math.random() < 0.0022 * nightFactor){ createComet(); }
+    }
+
+    /* ---------- Sky & Clock Animation ---------- */
+    let angle=0;
+    function lerp(a,b,t){ return a+(b-a)*t; }
+
+    function animate(){
+      angle+=0.0015;
+
+      const cx=window.innerWidth/2;
+      const cy=window.innerHeight*0.9;
+      const radius=window.innerWidth/2;
+
+      sun.style.left=cx+radius*Math.cos(angle-Math.PI)+"px";
+      sun.style.top=cy-radius*Math.sin(angle-Math.PI)+"px";
+
+      moon.style.left=cx+radius*Math.cos(angle)+"px";
+      moon.style.top=cy-radius*Math.sin(angle)+"px";
+
+      const elevation=Math.sin(angle-Math.PI);
+      const t=(elevation+1)/2;
+      const smooth=0.5-0.5*Math.cos(Math.PI*t);
+
+      const nightTop=[0,0,0];
+      const nightBottom=[5,8,20];
+      const dayTop=[70,150,255];
+      const dayBottom=[135,200,255];
+
+      const r1=lerp(nightTop[0],dayTop[0],smooth);
+      const g1=lerp(nightTop[1],dayTop[1],smooth);
+      const b1=lerp(nightTop[2],dayTop[2],smooth);
+      const r2=lerp(nightBottom[0],dayBottom[0],smooth);
+      const g2=lerp(nightBottom[1],dayBottom[1],smooth);
+      const b2=lerp(nightBottom[2],dayBottom[2],smooth);
+
+      const golden=Math.exp(-Math.pow((t-0.5)*6,2));
+      document.body.style.background=`
+        linear-gradient(
+          to top,
+          rgb(${Math.round(r2+255*golden*0.3)},
+              ${Math.round(g2+120*golden*0.2)},
+              ${Math.round(b2+60*golden*0.15)}),
+          rgb(${Math.round(r1)},
+              ${Math.round(g1)},
+              ${Math.round(b1)})
+        )
+      `;
+
+      stars.style.opacity=Math.max(0,-elevation);
+
+      clouds.forEach(obj=>{
+        let left=parseFloat(obj.el.style.left);
+        left+=obj.speed;
+        if(left>100) left=-20;
+        obj.el.style.left=left+"vw";
+        obj.el.style.opacity=Math.max(0,elevation)*0.9;
+      });
+
+      sun.style.opacity=elevation>-0.1?1:0;
+      moon.style.opacity=elevation<0.1?1:0;
+
+      const hours=(angle/(2*Math.PI))*24;
+      const mins=(hours-Math.floor(hours))*60;
+
+      hourHand.style.transform = `translateX(-50%) rotate(${(hours/12)*360}deg)`;
+      minuteHand.style.transform = `translateX(-50%) rotate(${(mins/60)*360}deg)`;
+
+      const minuteAngle = ((mins/60)*2*Math.PI) - Math.PI/2;
+      checkMinuteHandPulse(minuteAngle);
+
+      const leanDegree = -2 + 4 * t;
+      headline.style.transform = `rotate(${leanDegree * 2.34375}deg)`;
+      const glowStrength = 0.3 + 0.7*t;
+      headline.style.textShadow = `0 0 ${10*glowStrength}px #FFD700,0 0 ${20*glowStrength}px #FFA500`;
+
+      const nightFactor = Math.max(0, -elevation);
+      randomShootingStars(nightFactor);
+      randomComets(nightFactor);
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

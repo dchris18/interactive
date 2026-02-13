@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real-Time Digital Clock</title>
+<style>
+body {
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-family: 'Arial', sans-serif;
+    transition: background 1s linear;
+    color:white;
+}
+
+.clock {
+    font-size: clamp(48px, 10vw, 100px);
+    background: rgba(0,0,0,0.3);
+    padding: 20px 40px;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    text-align:center;
+}
+</style>
+</head>
+<body>
+
+<div class="clock" id="clock">00:00:00</div>
+
+<script>
+const clock = document.getElementById("clock");
+
+function updateClock() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2,'0');
+    const minutes = now.getMinutes().toString().padStart(2,'0');
+    const seconds = now.getSeconds().toString().padStart(2,'0');
+
+    // Update clock display
+    clock.textContent = `${hours}:${minutes}:${seconds}`;
+
+    // Background color based on time
+    // Map 0-24 hours to 0-1
+    const timeFraction = now.getHours()/24 + now.getMinutes()/(24*60) + now.getSeconds()/(24*3600);
+
+    // Gradient from black at midnight to blue at noon and back
+    // We'll use HSL: 240deg is blue, 0deg is black
+    // We'll interpolate lightness for smooth effect
+    let lightness;
+    if (timeFraction <= 0.5) {
+        // Midnight -> Noon
+        lightness = 0 + (80-0)*(timeFraction/0.5);
+    } else {
+        // Noon -> Midnight
+        lightness = 80 - (80*(timeFraction-0.5)/0.5);
+    }
+
+    document.body.style.background = `hsl(210, 100%, ${lightness}%)`;
+}
+
+// Update every second
+updateClock();
+setInterval(updateClock, 1000);
+</script>
+
+</body>
+</html>
