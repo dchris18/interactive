@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Clock1</title>
+<style>
+    body {
+        margin: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #e8f5e9;
+        overflow: hidden;
+    }
+
+    img {
+        position: absolute;
+        transition: width 2s ease;
+        user-select: none;
+        pointer-events: auto;
+    }
+
+    img:hover {
+        z-index: 10;
+        transform: scale(1.15);
+    }
+</style>
+</head>
+<body>
+
+<script>
+const imageSources = [
+    "clocked1.png",
+    "clocked2.png",
+    "clocked3.png",
+    "clocked4.png",
+    "clocked5.png"
+];
+
+const images = [];
+
+const screenW = () => window.innerWidth;
+const screenH = () => window.innerHeight;
+
+imageSources.forEach(src => {
+    const img = document.createElement("img");
+    img.src = src;
+
+    const size = Math.random() * 150 + 80;
+    img.style.width = size + "px";
+
+    const obj = {
+        el: img,
+        x: Math.random() * (screenW() - size),
+        y: Math.random() * (screenH() - size),
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4
+    };
+
+    img.style.left = obj.x + "px";
+    img.style.top = obj.y + "px";
+
+    images.push(obj);
+    document.body.appendChild(img);
+});
+
+// Movement loop
+function animate() {
+    images.forEach(obj => {
+        const img = obj.el;
+        const size = img.offsetWidth;
+
+        obj.x += obj.vx;
+        obj.y += obj.vy;
+
+        // Bounce off edges
+        if (obj.x <= 0 || obj.x + size >= screenW()) obj.vx *= -1;
+        if (obj.y <= 0 || obj.y + size >= screenH()) obj.vy *= -1;
+
+        img.style.left = obj.x + "px";
+        img.style.top = obj.y + "px";
+    });
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+// Random resize every few seconds
+setInterval(() => {
+    images.forEach(obj => {
+        const newSize = Math.random() * 150 + 80;
+        obj.el.style.width = newSize + "px";
+    });
+}, 3000);
+</script>
+
+</body>
+</html>

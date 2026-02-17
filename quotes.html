@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Time Quotes</title>
+
+<style>
+  :root{
+    /* text gradient: light blue -> midnight purple */
+    --tTop: #bfe6ff;
+    --tBot: #25104a;
+
+    /* background gradient flipped: midnight purple (top) -> light blue (bottom) */
+    --bTop: #25104a;
+    --bBot: #bfe6ff;
+  }
+
+  html, body { height:100%; }
+  body{
+    margin:0;
+    overflow:hidden;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:
+      radial-gradient(circle at 50% 18%, rgba(255,255,255,0.10), transparent 55%),
+      radial-gradient(circle at 20% 70%, rgba(255,255,255,0.07), transparent 60%),
+      linear-gradient(180deg, var(--bTop) 0%, #140a2c 45%, var(--bBot) 100%);
+    font-family: ui-serif, Georgia, "Times New Roman", serif;
+  }
+
+  /* subtle vignette */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:-20%;
+    pointer-events:none;
+    background: radial-gradient(circle at 50% 50%, transparent 52%, rgba(0,0,0,0.45) 100%);
+    opacity: 0.9;
+  }
+
+  /* gentle grain */
+  body::after{
+    content:"";
+    position:fixed;
+    inset:-40%;
+    pointer-events:none;
+    opacity:0.08;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.10) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 4px);
+    transform: rotate(7deg);
+    mix-blend-mode: soft-light;
+  }
+
+  .wrap{
+    width:min(980px, 92vw);
+    height:min(900px, 92vh);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    position:relative;
+  }
+
+  /* faint center guide line (very subtle) */
+  .wrap::before{
+    content:"";
+    position:absolute;
+    top:5%;
+    bottom:5%;
+    left:50%;
+    width:1px;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, rgba(191,230,255,0.00), rgba(191,230,255,0.22), rgba(37,16,74,0.18), rgba(37,16,74,0.00));
+    opacity: 0.55;
+    pointer-events:none;
+  }
+
+  .quotes{
+    width: min(760px, 92vw);
+    display:flex;
+    flex-direction:column;
+    gap: clamp(18px, 3.2vh, 34px);
+    text-align:center;
+    padding: clamp(18px, 3vw, 32px);
+    box-sizing:border-box;
+    position:relative;
+    z-index:1;
+  }
+
+  .q{
+    font-size: clamp(16px, 1.8vw, 22px);
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+    margin:0;
+    text-shadow: 0 10px 40px rgba(0,0,0,0.35);
+  }
+
+  .q .author{
+    opacity: 0.9;
+    white-space: nowrap;
+  }
+
+  /* Gradient-like steps (top light blue -> bottom midnight purple) */
+  .q:nth-child(1){ color: color-mix(in srgb, var(--tTop) 96%, var(--tBot) 4%); }
+  .q:nth-child(2){ color: color-mix(in srgb, var(--tTop) 80%, var(--tBot) 20%); }
+  .q:nth-child(3){ color: color-mix(in srgb, var(--tTop) 64%, var(--tBot) 36%); }
+  .q:nth-child(4){ color: color-mix(in srgb, var(--tTop) 50%, var(--tBot) 50%); }
+  .q:nth-child(5){ color: color-mix(in srgb, var(--tTop) 36%, var(--tBot) 64%); }
+  .q:nth-child(6){ color: color-mix(in srgb, var(--tTop) 22%, var(--tBot) 78%); }
+  .q:nth-child(7){ color: color-mix(in srgb, var(--tTop) 10%, var(--tBot) 90%); }
+
+  /* Fallback for browsers that don't support color-mix */
+  @supports not (color: color-mix(in srgb, white, black)){
+    .q:nth-child(1){ color:#bfe6ff; }
+    .q:nth-child(2){ color:#a7d6ff; }
+    .q:nth-child(3){ color:#86b9ff; }
+    .q:nth-child(4){ color:#6a86e6; }
+    .q:nth-child(5){ color:#4c4dbd; }
+    .q:nth-child(6){ color:#342a86; }
+    .q:nth-child(7){ color:#25104a; }
+  }
+</style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="quotes" aria-label="Quotes about time">
+      <p class="q">“Time is money.” <span class="author">- Benjamin Franklin.</span></p>
+      <p class="q">“The two most powerful warriors are patience and time.” <span class="author">- Leo Tolstoy.</span></p>
+      <p class="q">“Time flies over us, but leaves its shadow behind.” <span class="author">- Nathaniel Hawthorne.</span></p>
+      <p class="q">“Better three hours too soon than a minute too late.” <span class="author">- William Shakespeare.</span></p>
+      <p class="q">“You cannot kill time without injuring eternity.” <span class="author">- Henry David Thoreau.</span></p>
+      <p class="q">“Time flies like an arrow; fruit flies like a banana.” <span class="author">- Groucho Marx.</span></p>
+      <p class="q">“It is the time you have wasted for your rose that makes your rose so important.” <span class="author">- Antoine de Saint-Exupéry.</span></p>
+    </div>
+  </div>
+</body>
+</html>

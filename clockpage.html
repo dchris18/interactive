@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Choose a Clock</title>
+<style>
+    body {
+        margin: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #f2f2f2;
+        overflow: hidden;
+    }
+
+    .clock {
+        position: absolute;
+        width: 140px;          /* SAME SIZE FOR ALL */
+        height: auto;          /* prevents warping */
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+
+    .clock:hover {
+        transform: scale(1.15);
+        z-index: 10;
+    }
+</style>
+</head>
+<body>
+
+<a href="clock1.html">
+    <img src="clock1.png" class="clock">
+</a>
+
+<a href="clock2.html">
+    <img src="clock2.png" class="clock">
+</a>
+
+<a href="clock3.html">
+    <img src="clock3.png" class="clock">
+</a>
+
+<script>
+const clocks = document.querySelectorAll(".clock");
+
+const screenW = () => window.innerWidth;
+const screenH = () => window.innerHeight;
+
+clocks.forEach(clock => {
+    const size = 140; // must match CSS width
+
+    // Random position
+    let x = Math.random() * (screenW() - size);
+    let y = Math.random() * (screenH() - size);
+
+    clock.style.left = x + "px";
+    clock.style.top = y + "px";
+
+    // Gentle drift
+    let vx = (Math.random() - 0.5) * 0.15;
+    let vy = (Math.random() - 0.5) * 0.15;
+
+    function drift() {
+        x += vx;
+        y += vy;
+
+        if (x <= 0 || x + size >= screenW()) vx *= -1;
+        if (y <= 0 || y + size >= screenH()) vy *= -1;
+
+        clock.style.left = x + "px";
+        clock.style.top = y + "px";
+
+        requestAnimationFrame(drift);
+    }
+
+    drift();
+});
+</script>
+
+</body>
+</html>

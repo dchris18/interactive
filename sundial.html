@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Real-Time Sundial</title>
+
+<style>
+  :root{
+    --skyTop:#f7e7bf;
+    --skyMid:#f0c77c;
+    --skyBot:#c5663f;
+
+    --stone1:#f2e6cf;
+    --stone2:#d9c8a6;
+    --stone3:#b79f7c;
+
+    --ink:#1b120d;
+    --shadow: rgba(0,0,0,0.35);
+  }
+
+  html, body{ height:100%; }
+  body{
+    margin:0;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 50% 18%, rgba(255,255,255,0.26), transparent 55%),
+      linear-gradient(180deg, var(--skyTop) 0%, var(--skyMid) 46%, var(--skyBot) 100%);
+    font-family: ui-serif, Georgia, "Times New Roman", serif;
+    color: var(--ink);
+  }
+
+  /* soft vignette + grain */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:-18%;
+    pointer-events:none;
+    background: radial-gradient(circle at 50% 50%, transparent 58%, rgba(0,0,0,0.22) 100%);
+    opacity: 0.7;
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    inset:-40%;
+    pointer-events:none;
+    opacity:0.07;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.10) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 4px);
+    transform: rotate(8deg);
+    mix-blend-mode: soft-light;
+  }
+
+  .title{
+    position:fixed;
+    top:18px;
+    left:50%;
+    transform:translateX(-50%);
+    font-weight:800;
+    letter-spacing:0.10em;
+    text-transform:uppercase;
+    font-size:clamp(12px, 1.7vw, 14px);
+    opacity:0.78;
+    user-select:none;
+  }
+
+  .wrap{
+    width:min(980px, 96vw);
+    height:min(900px, 92vh);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* ===== Traditional-ish sundial ===== */
+  .sundial{
+    width:min(680px, 92vw);
+    aspect-ratio: 1 / 1;
+    position:relative;
+  }
+
+  /* base disc */
+  .plate{
+    position:absolute;
+    inset: 0;
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.42), transparent 55%),
+      radial-gradient(circle at 70% 78%, rgba(0,0,0,0.16), transparent 60%),
+      linear-gradient(180deg, var(--stone1), var(--stone2) 60%, var(--stone3));
+    border: 1px solid rgba(255,255,255,0.45);
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,0.40),
+      inset 0 -26px 40px rgba(0,0,0,0.16),
+      0 26px 80px rgba(0,0,0,0.28);
+  }
+
+  /* a simple carved ring */
+  .ring{
+    position:absolute;
+    inset: 6%;
+    border-radius: 999px;
+    border: 2px solid rgba(0,0,0,0.14);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.18),
+      inset 0 18px 30px rgba(255,255,255,0.08),
+      inset 0 -20px 32px rgba(0,0,0,0.12);
+    opacity: 0.9;
+    pointer-events:none;
+  }
+
+  /* hour lines: show only "daylight" arc (6 to 6) */
+  .hours{
+    position:absolute;
+    inset: 14%;
+    border-radius: 999px;
+    pointer-events:none;
+    opacity: 0.9;
+  }
+
+  .hour-line{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width: 48%;
+    height: 2px;
+    transform-origin: 0% 50%;
+    background: rgba(0,0,0,0.22);
+  }
+  .hour-line.major{ height: 3px; background: rgba(0,0,0,0.30); }
+  .hour-line::after{
+    content:"";
+    position:absolute;
+    right:-4px;
+    top:50%;
+    width: 8px;
+    height: 8px;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background: rgba(0,0,0,0.22);
+    opacity: 0.25;
+  }
+
+  /* numbers around the bottom half (traditional look) */
+  .nums{
+    position:absolute;
+    inset: 18%;
+    border-radius: 999px;
+    pointer-events:none;
+    color: rgba(20,12,9,0.70);
+    font-weight: 800;
+    text-shadow: 0 2px 0 rgba(255,255,255,0.18);
+  }
+  .nums span{
+    position:absolute;
+    transform: translate(-50%,-50%);
+    font-size: clamp(12px, 2.1vw, 18px);
+    letter-spacing: 0.02em;
+  }
+
+  /* gnomon: simple triangular wedge */
+  .gnomon{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width: 54%;
+    height: 54%;
+    transform: translate(-50%,-64%) rotate(0deg);
+    transform-origin: 50% 80%;
+    cursor: grab;
+    filter: drop-shadow(0 16px 24px rgba(0,0,0,0.18));
+    z-index: 4;
+  }
+  .gnomon:active{ cursor: grabbing; }
+  .gnomon::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.25), rgba(0,0,0,0.10)),
+      linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.16));
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 10px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.22),
+      inset 0 -18px 22px rgba(0,0,0,0.12);
+  }
+
+  /* gnomon base cap */
+  .cap{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width: 36px;
+    height: 36px;
+    transform: translate(-50%,-50%);
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.30), rgba(0,0,0,0.08));
+    border: 1px solid rgba(0,0,0,0.12);
+    box-shadow: 0 14px 34px rgba(0,0,0,0.16);
+    z-index: 5;
+    pointer-events:none;
+  }
+
+  /* shadow: simple wedge */
+  .shadow{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width: 72%;
+    height: 72%;
+    transform: translate(-50%,-58%) rotate(0deg);
+    transform-origin: 50% 78%;
+    pointer-events:none;
+    z-index: 2;
+    opacity: 0.9;
+  }
+  .shadow::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    clip-path: polygon(50% 0%, 46% 100%, 54% 100%);
+    background: linear-gradient(180deg, rgba(0,0,0,0.34), rgba(0,0,0,0.00));
+    filter: blur(0.6px);
+  }
+
+  /* small time label (optional but minimal) */
+  .time{
+    position:absolute;
+    left:50%;
+    bottom: -12px;
+    transform: translate(-50%, 100%);
+    font-size: clamp(12px, 1.8vw, 14px);
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    opacity: 0.72;
+    user-select:none;
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.22);
+    padding: 10px 14px;
+    border-radius: 999px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .shadow::before{ filter:none; }
+  }
+</style>
+</head>
+
+<body>
+  <div class="title">Real-Time Sundial</div>
+
+  <div class="wrap">
+    <div class="sundial" id="dial" aria-label="Traditional sundial">
+      <div class="plate"></div>
+      <div class="ring"></div>
+
+      <div class="shadow" id="shadow"></div>
+
+      <div class="hours" id="hours"></div>
+
+      <!-- simple traditional numbers (daylight-ish arc) -->
+      <div class="nums" aria-hidden="true">
+        <span style="left:18%; top:70%;">7</span>
+        <span style="left:28%; top:82%;">8</span>
+        <span style="left:40%; top:90%;">9</span>
+        <span style="left:50%; top:93%;">10</span>
+        <span style="left:60%; top:90%;">11</span>
+        <span style="left:72%; top:82%;">12</span>
+        <span style="left:82%; top:70%;">1</span>
+      </div>
+
+      <div class="gnomon" id="gnomon" title="Drag to rotate (optional)"></div>
+      <div class="cap"></div>
+
+      <div class="time" id="timeText">—</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const dial = document.getElementById('dial');
+  const shadow = document.getElementById('shadow');
+  const gnomon = document.getElementById('gnomon');
+  const timeText = document.getElementById('timeText');
+  const hours = document.getElementById('hours');
+
+  // Build simple hour lines from 6AM to 6PM (approx)
+  // Map 6 -> -90deg, 12 -> 0deg, 18 -> 90deg
+  function buildHourLines(){
+    hours.innerHTML = "";
+    for(let h=6; h<=18; h++){
+      const deg = (h - 12) * 15; // 6->-90, 12->0, 18->90
+      const div = document.createElement('div');
+      div.className = 'hour-line' + ((h%3===0) ? ' major' : '');
+      div.style.transform = `rotate(${deg}deg)`;
+      hours.appendChild(div);
+    }
+  }
+  buildHourLines();
+
+  let dragging = false;
+  let dragAngle = 0;
+  let baseAngle = 0;
+
+  function fmtTime(d){
+    const hh = d.getHours();
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    const ampm = hh >= 12 ? 'PM' : 'AM';
+    const h12 = ((hh + 11) % 12) + 1;
+    return `${h12}:${mm}:${ss} ${ampm}`;
+  }
+
+  function localAngle(){
+    // simple mapping: 12:00 -> 0deg, 6:00 -> -90deg, 18:00 -> +90deg
+    const now = new Date();
+    const hrs = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600;
+
+    // clamp to daylight window for nicer look (still shows movement)
+    const clamped = Math.max(6, Math.min(18, hrs));
+    const deg = (clamped - 12) * 15; // 15deg per hour across 12h
+    return { now, deg };
+  }
+
+  function setAngle(deg){
+    // Shadow rotates; gnomon slightly offset for depth
+    shadow.style.transform = `translate(-50%,-58%) rotate(${deg}deg)`;
+    gnomon.style.transform = `translate(-50%,-64%) rotate(${deg - 10}deg)`;
+
+    // shadow opacity changes mildly (noon darker)
+    const noonFactor = 1 - Math.min(1, Math.abs(deg) / 90);
+    shadow.style.opacity = (0.55 + 0.40 * noonFactor).toFixed(3);
+  }
+
+  function tick(){
+    const { now, deg } = localAngle();
+    baseAngle = deg;
+
+    if(!dragging) setAngle(deg);
+
+    timeText.textContent = fmtTime(now);
+    requestAnimationFrame(tick);
+  }
+
+  function angleFromPointer(e){
+    const rect = dial.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top + rect.height/2;
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - cx;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY) - cy;
+    // 0deg up
+    return (Math.atan2(y, x) * 180/Math.PI) + 90;
+  }
+
+  function onDown(e){
+    dragging = true;
+    dragAngle = angleFromPointer(e);
+    setAngle(dragAngle);
+    e.preventDefault();
+  }
+  function onMove(e){
+    if(!dragging) return;
+    dragAngle = angleFromPointer(e);
+    setAngle(dragAngle);
+    e.preventDefault();
+  }
+  function onUp(){
+    if(!dragging) return;
+    dragging = false;
+    setAngle(baseAngle);
+  }
+
+  gnomon.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+
+  gnomon.addEventListener('touchstart', onDown, {passive:false});
+  window.addEventListener('touchmove', onMove, {passive:false});
+  window.addEventListener('touchend', onUp);
+
+  tick();
+})();
+</script>
+</body>
+</html>
