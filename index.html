@@ -6,47 +6,87 @@
   <title>Cinematic Sky Clock</title>
 
   <style>
-    * { box-sizing: border-box; }
-    html, body { height: 100%; width: 100%; }
-    body { margin: 0; }
+    *{ box-sizing:border-box; }
+    html,body{ width:100%; height:100%; }
+    body{ margin:0; overflow:hidden; position:relative; font-family:Arial,sans-serif; background:black; transition:background 1.2s linear; }
+
+    :root{
+      --vh: 1vh;
+      --clock-size: min(380px, 56vmin);
+      --celestial-size: min(78px, 12vmin);
+
+      --num-size: clamp(40px, calc(var(--clock-size) * 0.142), 58px);
+      --num-font: clamp(20px, calc(var(--clock-size) * 0.070), 30px);
+
+      --hour-w: clamp(5px, calc(var(--clock-size) * 0.0155), 7px);
+      --hour-h: clamp(62px, calc(var(--clock-size) * 0.175), 86px);
+
+      --min-w: clamp(3px, calc(var(--clock-size) * 0.0102), 4.6px);
+      --min-h: clamp(96px, calc(var(--clock-size) * 0.265), 128px);
+
+      --dot: clamp(11px, calc(var(--clock-size) * 0.030), 15px);
+
+      --stage-shift: clamp(70px, 12vmin, 170px);
+      --stage-gap: clamp(28px, 5.2vmin, 78px);
+
+      --title-size: clamp(58px, 8.2vmin, 124px);
+    }
+
+    @media (max-height: 740px){
+      :root{
+        --stage-shift: clamp(40px, 8vmin, 110px);
+        --stage-gap: clamp(18px, 3.8vmin, 46px);
+        --title-size: clamp(44px, 7.2vmin, 98px);
+      }
+    }
+
+    @media (max-width: 520px){
+      :root{
+        --clock-size: min(340px, 72vmin);
+        --celestial-size: min(68px, 14vmin);
+        --stage-shift: clamp(40px, 9vmin, 120px);
+        --stage-gap: clamp(18px, 4.2vmin, 54px);
+        --title-size: clamp(44px, 10vmin, 92px);
+      }
+    }
 
     @font-face{
       font-family:"DrukCondSuper";
       src:
         url("./fonts/DrukCond-Super.woff2") format("woff2"),
-        url("./fonts/DrukCond-Super.woff") format("woff"),
         url("./fonts/DrukCond-Super.otf") format("opentype");
       font-weight:400;
       font-style:normal;
       font-display:swap;
     }
 
-    body{
-      overflow:hidden;
-      font-family:Arial, sans-serif;
-      background:black;
-      transition:background 1.2s linear;
-      position:relative;
+    @font-face{
+      font-family:"DrukTextHeavy";
+      src:
+        url("./fonts/DrukText-Heavy.woff2") format("woff2"),
+        url("./fonts/DrukText-Heavy.otf") format("opentype");
+      font-weight:900;
+      font-style:normal;
+      font-display:swap;
     }
 
-.stage{
-  height: 100svh;
-  height: 100vh;
-  width: 100%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
+    .stage{
+      width:100%;
+      height: calc(var(--vh) * 100);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap: var(--stage-gap);
+      padding: clamp(14px, 3vmin, 38px);
+      position:relative;
+      z-index:6;
+      transform: translateY(var(--stage-shift));
+    }
 
-  gap: clamp(32px, 5.5vmin, 80px);
-  padding: clamp(16px, 3vmin, 40px);
-
-  position:relative;
-  z-index:6;
-
-  transform: translateY(clamp(50px, 8.5vmin, 120px));
-}
     .clock{
+      width:var(--clock-size);
+      height:var(--clock-size);
       position:relative;
       border-radius:50%;
       background:rgba(255,255,255,0.18);
@@ -89,7 +129,19 @@
       pointer-events:none;
     }
 
+    .hand{
+      position:absolute;
+      bottom:50%;
+      left:50%;
+      transform-origin:bottom center;
+      transform:translateX(-50%);
+    }
+    .hour-hand{ width:var(--hour-w); height:var(--hour-h); background:white; border-radius:4px; }
+    .minute-hand{ width:var(--min-w); height:var(--min-h); background:white; border-radius:3px; }
+
     .center-dot{
+      width:var(--dot);
+      height:var(--dot);
       position:absolute;
       background:white;
       border-radius:50%;
@@ -99,18 +151,10 @@
       z-index:10;
     }
 
-    .hand{
-      position:absolute;
-      bottom:50%;
-      left:50%;
-      transform-origin:bottom center;
-      transform:translateX(-50%);
-    }
-
-    .hour-hand{ background:white; border-radius:4px; }
-    .minute-hand{ background:white; border-radius:3px; }
-
     .clock-number{
+      width:var(--num-size);
+      height:var(--num-size);
+      font-size:var(--num-font);
       position:absolute;
       display:flex;
       justify-content:center;
@@ -122,7 +166,7 @@
       border-radius:50%;
       user-select:none;
       text-decoration:none;
-      font-family:"DrukCondSuper", Arial, sans-serif;
+      font-family:"DrukTextHeavy", Arial, sans-serif;
     }
 
     @keyframes pulse{
@@ -130,74 +174,73 @@
       50%  { transform:translate(-50%,-50%) scale(1.15); color:#FFD700; text-shadow:0 0 5px #FFD700,0 0 10px #FFA500; }
       100% { transform:translate(-50%,-50%) scale(1); color:white; text-shadow:none; }
     }
-
     .clock-number.pulsing{ animation:pulse 0.4s ease; }
     .clock-number:hover{ background:rgba(255,255,255,0.10); }
     .clock-number:active{ transform:translate(-50%,-50%) scale(0.98); }
 
-h1{
-  font-family:"DrukCondSuper", Impact, "Arial Black", sans-serif;
-  font-weight:400;
-  color:white;
-  text-align:center;
-  letter-spacing:2px;
-  line-height:1.05;
-  text-shadow:3px 3px 12px rgba(0,0,0,0.7);
-  pointer-events:none;
-  white-space:nowrap;
-
-  font-size: clamp(60px, 8.2vmin, 120px);
-
-  transform-origin:center top;
-  transition:text-shadow 0.5s linear, color 0.5s linear;
-
-  margin-top: clamp(10px, 2vmin, 24px);
-}
-
-@media (max-width: 520px){
-  h1{ white-space:normal; }
-}
+    h1{
+      font-family:"DrukCondSuper", Impact, "Arial Black", sans-serif;
+      font-weight:400;
+      color:white;
+      text-align:center;
+      letter-spacing:2px;
+      line-height:1.05;
+      text-shadow:3px 3px 12px rgba(0,0,0,0.7);
+      pointer-events:none;
+      margin:0;
+      white-space:nowrap;
+      font-size: var(--title-size);
+      transform-origin:center top;
+      transition:text-shadow 0.5s linear, color 0.5s linear;
+    }
+    @media (max-width:520px){ h1{ white-space:normal; } }
 
     .sun,.moon{
+      width:var(--celestial-size);
+      height:var(--celestial-size);
       position:absolute;
       border-radius:50%;
       pointer-events:none;
       overflow:hidden;
     }
 
-.sun{
-  background:
-    radial-gradient(circle at 30% 25%,
-      rgba(255,255,255,1),
-      rgba(255,250,210,0.98) 15%,
-      rgba(255,220,90,0.95) 35%,
-      rgba(255,170,40,0.92) 65%,
-      rgba(255,120,10,0.90) 100%),
-    radial-gradient(circle at 60% 70%,
-      rgba(255,200,80,0.35),
-      rgba(255,150,30,0.0) 60%);
+    .sun{
+      background:
+        radial-gradient(circle at 30% 25%,
+          rgba(255,255,255,1),
+          rgba(255,250,210,0.98) 15%,
+          rgba(255,220,90,0.95) 35%,
+          rgba(255,170,40,0.92) 65%,
+          rgba(255,120,10,0.90) 100%),
+        radial-gradient(circle at 62% 72%,
+          rgba(255,200,80,0.35),
+          rgba(255,150,30,0.0) 60%),
+        radial-gradient(circle at 45% 40%,
+          rgba(255,255,255,0.18),
+          rgba(255,255,255,0.0) 55%);
+      box-shadow:
+        0 0 40px rgba(255,230,120,0.9),
+        0 0 90px rgba(255,170,40,0.6),
+        0 0 180px rgba(255,120,10,0.3);
+    }
 
-  box-shadow:
-    0 0 40px rgba(255,230,120,0.9),
-    0 0 90px rgba(255,170,40,0.6),
-    0 0 180px rgba(255,120,10,0.3);
-}
-
-.moon{
-  background:
-    radial-gradient(circle at 30% 25%,
-      rgba(255,255,255,0.98),
-      rgba(240,240,240,0.96) 30%,
-      rgba(215,215,215,0.93) 60%,
-      rgba(185,185,185,0.9) 100%),
-    radial-gradient(circle at 65% 65%,
-      rgba(180,180,180,0.35),
-      rgba(150,150,150,0.0) 60%);
-
-  box-shadow:
-    0 0 25px rgba(255,255,255,0.6),
-    0 0 60px rgba(255,255,255,0.25);
-}
+    .moon{
+      background:
+        radial-gradient(circle at 30% 25%,
+          rgba(255,255,255,0.98),
+          rgba(240,240,240,0.96) 30%,
+          rgba(215,215,215,0.93) 60%,
+          rgba(185,185,185,0.90) 100%),
+        radial-gradient(circle at 66% 66%,
+          rgba(170,170,170,0.35),
+          rgba(150,150,150,0.0) 60%),
+        radial-gradient(circle at 40% 55%,
+          rgba(120,120,120,0.20),
+          rgba(120,120,120,0.0) 52%);
+      box-shadow:
+        0 0 28px rgba(255,255,255,0.6),
+        0 0 64px rgba(255,255,255,0.25);
+    }
 
     .stars{
       position:absolute;
@@ -264,29 +307,6 @@ h1{
       background:radial-gradient(circle, rgba(255,255,255,1), rgba(255,255,255,0.35) 55%, rgba(255,255,255,0) 75%);
       filter:blur(0.2px);
     }
-
-    :root{
-      --clock-size: min(380px, 54vmin);
-      --celestial-size: min(55px, 8.5vmin);
-
-      --num-size: clamp(40px, calc(var(--clock-size) * 0.142), 58px);
-      --num-font: clamp(20px, calc(var(--clock-size) * 0.070), 30px);
-
-      --hour-w: clamp(5px, calc(var(--clock-size) * 0.0155), 7px);
-      --hour-h: clamp(62px, calc(var(--clock-size) * 0.175), 86px);
-
-      --min-w: clamp(3px, calc(var(--clock-size) * 0.0102), 4.6px);
-      --min-h: clamp(96px, calc(var(--clock-size) * 0.265), 128px);
-
-      --dot: clamp(11px, calc(var(--clock-size) * 0.030), 15px);
-    }
-
-    .clock{ width:var(--clock-size); height:var(--clock-size); }
-    .hour-hand{ width:var(--hour-w); height:var(--hour-h); }
-    .minute-hand{ width:var(--min-w); height:var(--min-h); }
-    .center-dot{ width:var(--dot); height:var(--dot); }
-    .clock-number{ width:var(--num-size); height:var(--num-size); font-size:var(--num-font); }
-    .sun,.moon{ width:var(--celestial-size); height:var(--celestial-size); }
   </style>
 </head>
 
@@ -301,11 +321,18 @@ h1{
       <div class="hand minute-hand" id="minuteHand"></div>
       <div class="center-dot"></div>
     </div>
-
     <h1 id="headline">TIME WAITS FOR NO ONE</h1>
   </div>
 
   <script>
+    function setVH(){
+      const h = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+      document.documentElement.style.setProperty("--vh", (h * 0.01) + "px");
+    }
+    setVH();
+    window.addEventListener("resize", setVH);
+    if(window.visualViewport) window.visualViewport.addEventListener("resize", setVH);
+
     const sun=document.querySelector(".sun");
     const moon=document.querySelector(".moon");
     const stars=document.getElementById("stars");
@@ -329,11 +356,11 @@ h1{
     const numbers=[];
     const numberAngles=[];
     for(let n=1;n<=12;n++){
-      const angle=(n-3)*(Math.PI/6);
-      numberAngles.push(angle);
+      const a=(n-3)*(Math.PI/6);
+      numberAngles.push(a);
 
       let num;
-      if(n === 1){
+      if(n===1){
         num=document.createElement("a");
         num.href="./timer.html";
         num.setAttribute("aria-label","Go to timer");
@@ -353,28 +380,32 @@ h1{
       const size = clock.clientWidth;
       const c = size/2;
       const r = size*0.42;
-      numbers.forEach((num,i)=>{
+      for(let i=0;i<numbers.length;i++){
         const a = numberAngles[i];
-        num.style.left = (c + r*Math.cos(a)) + "px";
-        num.style.top  = (c + r*Math.sin(a)) + "px";
-      });
+        numbers[i].style.left = (c + r*Math.cos(a)) + "px";
+        numbers[i].style.top  = (c + r*Math.sin(a)) + "px";
+      }
+    }
+
+    window.addEventListener("resize", layoutClockNumbers);
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(layoutClockNumbers);
     }
     layoutClockNumbers();
-    window.addEventListener("resize", layoutClockNumbers);
 
     const pulseCooldown = Array(12).fill(false);
     function checkMinuteHandPulse(minuteAngle){
-      numbers.forEach((num,i)=>{
+      for(let i=0;i<numbers.length;i++){
         const diff = Math.abs(minuteAngle - numberAngles[i]);
         if(diff < 0.17 && !pulseCooldown[i]){
-          num.classList.add("pulsing");
+          numbers[i].classList.add("pulsing");
           pulseCooldown[i] = true;
           setTimeout(()=>{
-            num.classList.remove("pulsing");
+            numbers[i].classList.remove("pulsing");
             pulseCooldown[i] = false;
           }, 400);
         }
-      });
+      }
     }
 
     const clouds=[];
@@ -448,8 +479,7 @@ h1{
 
       const dx = endX - startX;
       const dy = endY - startY;
-      const angleRad = Math.atan2(dy, dx);
-      const angleDeg = angleRad * 180 / Math.PI;
+      const angleDeg = Math.atan2(dy, dx) * 180 / Math.PI;
 
       const length = 220 + Math.random()*320;
       const duration = 900 + Math.random()*900;
@@ -525,13 +555,13 @@ h1{
 
       stars.style.opacity=Math.max(0,-elevation);
 
-      clouds.forEach(obj=>{
+      for(const obj of clouds){
         let left=parseFloat(obj.el.style.left);
         left+=obj.speed;
         if(left>100) left=-20;
         obj.el.style.left=left+"vw";
         obj.el.style.opacity=Math.max(0,elevation)*0.9;
-      });
+      }
 
       sun.style.opacity=elevation>-0.1?1:0;
       moon.style.opacity=elevation<0.1?1:0;
