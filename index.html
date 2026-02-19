@@ -7,13 +7,23 @@
 
   <style>
     *{ box-sizing:border-box; }
-    html,body{ width:100%; height:100%; }
-    body{ margin:0; overflow:hidden; position:relative; font-family:Arial,sans-serif; background:black; transition:background 1.2s linear; }
+    html, body{
+      width:100%;
+      height:100%;
+      margin:0;
+      overflow:hidden;
+      overscroll-behavior:none;
+      background:black;
+    }
+    body{
+      background:transparent;
+      font-family:Arial, sans-serif;
+      position:relative;
+    }
 
     :root{
-      --vh: 1vh;
       --clock-size: min(380px, 56vmin);
-      --celestial-size: min(50px, 8.5vmin);
+      --celestial-size: min(78px, 12vmin);
 
       --num-size: clamp(40px, calc(var(--clock-size) * 0.142), 58px);
       --num-font: clamp(20px, calc(var(--clock-size) * 0.070), 30px);
@@ -70,9 +80,18 @@
       font-display:swap;
     }
 
+    .scene{
+      position:fixed;
+      inset:0;
+      width:100vw;
+      height:100dvh;
+      height:100vh;
+      overflow:hidden;
+    }
+
     .stage{
       width:100%;
-      height: calc(var(--vh) * 100);
+      height:100%;
       display:flex;
       flex-direction:column;
       align-items:center;
@@ -82,6 +101,7 @@
       position:relative;
       z-index:6;
       transform: translateY(var(--stage-shift));
+      will-change: transform;
     }
 
     .clock{
@@ -250,12 +270,14 @@
       opacity:0;
       transition:opacity 2s ease;
     }
+
     .star{
       position:absolute;
       background:white;
       border-radius:50%;
       animation:twinkle infinite alternate ease-in-out;
     }
+
     @keyframes twinkle{
       from{opacity:0.3; transform:scale(0.8);}
       to{opacity:1; transform:scale(1.3);}
@@ -311,35 +333,30 @@
 </head>
 
 <body>
-  <div class="sun"></div>
-  <div class="moon"></div>
-  <div class="stars" id="stars"></div>
+  <div class="scene">
+    <div class="sun"></div>
+    <div class="moon"></div>
+    <div class="stars" id="stars"></div>
 
-  <div class="stage">
-    <div class="clock" id="clock">
-      <div class="hand hour-hand" id="hourHand"></div>
-      <div class="hand minute-hand" id="minuteHand"></div>
-      <div class="center-dot"></div>
+    <div class="stage">
+      <div class="clock" id="clock">
+        <div class="hand hour-hand" id="hourHand"></div>
+        <div class="hand minute-hand" id="minuteHand"></div>
+        <div class="center-dot"></div>
+      </div>
+
+      <h1 id="headline">TIME WAITS FOR NO ONE</h1>
     </div>
-    <h1 id="headline">TIME WAITS FOR NO ONE</h1>
   </div>
 
   <script>
-    function setVH(){
-      const h = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-      document.documentElement.style.setProperty("--vh", (h * 0.01) + "px");
-    }
-    setVH();
-    window.addEventListener("resize", setVH);
-    if(window.visualViewport) window.visualViewport.addEventListener("resize", setVH);
-
-    const sun=document.querySelector(".sun");
-    const moon=document.querySelector(".moon");
-    const stars=document.getElementById("stars");
-    const clock=document.getElementById("clock");
-    const hourHand=document.getElementById("hourHand");
-    const minuteHand=document.getElementById("minuteHand");
-    const headline=document.getElementById("headline");
+    const sun = document.querySelector(".sun");
+    const moon = document.querySelector(".moon");
+    const stars = document.getElementById("stars");
+    const clock = document.getElementById("clock");
+    const hourHand = document.getElementById("hourHand");
+    const minuteHand = document.getElementById("minuteHand");
+    const headline = document.getElementById("headline");
 
     for(let i=0;i<200;i++){
       const s=document.createElement("div");
@@ -439,10 +456,10 @@
       star.classList.add("shooting-star");
       document.body.appendChild(star);
 
-      const startX = Math.random()*window.innerWidth;
-      const startY = Math.random()*window.innerHeight*0.5;
+      const startX = Math.random()*document.documentElement.clientWidth;
+      const startY = Math.random()*document.documentElement.clientHeight*0.5;
       const length = 100 + Math.random()*100;
-      const angle = -0.3 + Math.random()*0.6;
+      const ang = -0.3 + Math.random()*0.6;
 
       star.style.left = startX + "px";
       star.style.top = startY + "px";
@@ -451,8 +468,8 @@
       let step = 0;
       const steps = 30;
       const interval = setInterval(()=>{
-        star.style.left = startX + Math.cos(angle)*length*(step/steps) + "px";
-        star.style.top  = startY + Math.sin(angle)*length*(step/steps) + "px";
+        star.style.left = startX + Math.cos(ang)*length*(step/steps) + "px";
+        star.style.top  = startY + Math.sin(ang)*length*(step/steps) + "px";
         star.style.opacity = 1 - step/steps;
         step++;
         if(step > steps){
@@ -470,11 +487,14 @@
       comet.classList.add("comet");
       document.body.appendChild(comet);
 
-      const startSide = Math.random() < 0.5 ? "left" : "right";
-      const startX = startSide === "left" ? -200 : window.innerWidth + 200;
-      const startY = Math.random() * window.innerHeight * 0.45;
+      const vw = document.documentElement.clientWidth;
+      const vh = document.documentElement.clientHeight;
 
-      const endX = startSide === "left" ? window.innerWidth + 260 : -260;
+      const startSide = Math.random() < 0.5 ? "left" : "right";
+      const startX = startSide === "left" ? -200 : vw + 200;
+      const startY = Math.random() * vh * 0.45;
+
+      const endX = startSide === "left" ? vw + 260 : -260;
       const endY = startY + (Math.random() * 180 + 80);
 
       const dx = endX - startX;
@@ -514,15 +534,18 @@
     function animate(){
       angle+=0.0015;
 
-      const cx=window.innerWidth/2;
-      const cy=window.innerHeight*0.9;
-      const radius=window.innerWidth/2;
+      const vw = document.documentElement.clientWidth;
+      const vh = document.documentElement.clientHeight;
 
-      sun.style.left=cx+radius*Math.cos(angle-Math.PI)+"px";
-      sun.style.top=cy-radius*Math.sin(angle-Math.PI)+"px";
+      const cx = vw / 2;
+      const cy = vh * 0.9;
+      const radius = vw / 2;
 
-      moon.style.left=cx+radius*Math.cos(angle)+"px";
-      moon.style.top=cy-radius*Math.sin(angle)+"px";
+      sun.style.left = (cx + radius*Math.cos(angle-Math.PI)) + "px";
+      sun.style.top  = (cy - radius*Math.sin(angle-Math.PI)) + "px";
+
+      moon.style.left = (cx + radius*Math.cos(angle)) + "px";
+      moon.style.top  = (cy - radius*Math.sin(angle)) + "px";
 
       const elevation=Math.sin(angle-Math.PI);
       const t=(elevation+1)/2;
@@ -541,7 +564,8 @@
       const b2=lerp(nightBottom[2],dayBottom[2],smooth);
 
       const golden=Math.exp(-Math.pow((t-0.5)*6,2));
-      document.body.style.background=`
+
+      document.documentElement.style.background = `
         linear-gradient(
           to top,
           rgb(${Math.round(r2+255*golden*0.3)},
@@ -555,16 +579,16 @@
 
       stars.style.opacity=Math.max(0,-elevation);
 
-      for(const obj of clouds){
+      clouds.forEach(obj=>{
         let left=parseFloat(obj.el.style.left);
         left+=obj.speed;
         if(left>100) left=-20;
         obj.el.style.left=left+"vw";
         obj.el.style.opacity=Math.max(0,elevation)*0.9;
-      }
+      });
 
-      sun.style.opacity=elevation>-0.1?1:0;
-      moon.style.opacity=elevation<0.1?1:0;
+      sun.style.opacity = elevation>-0.1 ? 1 : 0;
+      moon.style.opacity = elevation<0.1 ? 1 : 0;
 
       const hours=(angle/(2*Math.PI))*24;
       const mins=(hours-Math.floor(hours))*60;
