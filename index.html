@@ -219,9 +219,13 @@
       width:var(--celestial-size);
       height:var(--celestial-size);
       position:absolute;
+      left:0;
+      top:0;
       border-radius:50%;
       pointer-events:none;
       overflow:hidden;
+      transform: translate3d(0,0,0);
+      will-change: transform, opacity;
     }
 
     .sun{
@@ -487,10 +491,10 @@
       comet.classList.add("comet");
       document.body.appendChild(comet);
 
+      const startSide = Math.random() < 0.5 ? "left" : "right";
       const vw = document.documentElement.clientWidth;
       const vh = document.documentElement.clientHeight;
 
-      const startSide = Math.random() < 0.5 ? "left" : "right";
       const startX = startSide === "left" ? -200 : vw + 200;
       const startY = Math.random() * vh * 0.45;
 
@@ -528,56 +532,43 @@
       if(Math.random() < 0.0022 * nightFactor){ createComet(); }
     }
 
-    let angle=0;
+    let vw = 0, vh = 0;
+    function setViewport(){
+      vw = document.documentElement.clientWidth;
+      vh = document.documentElement.clientHeight;
+    }
+    setViewport();
+    window.addEventListener("resize", setViewport);
+    if(window.visualViewport) window.visualViewport.addEventListener("resize", setViewport);
+
     function lerp(a,b,t){ return a+(b-a)*t; }
 
-    function animate(){
-      angle+=0.0015;
+    let frame = 0;
+    let angle = 0;
 
-      const vw = document.documentElement.clientWidth;
-      const vh = document.documentElement.clientHeight;
+    function animate(){
+      angle += 0.0015;
 
       const cx = vw / 2;
       const cy = vh * 0.9;
       const radius = vw / 2;
 
-      sun.style.left = (cx + radius*Math.cos(angle-Math.PI)) + "px";
-      sun.style.top  = (cy - radius*Math.sin(angle-Math.PI)) + "px";
+      const sunX = cx + radius*Math.cos(angle - Math.PI);
+      const sunY = cy - radius*Math.sin(angle - Math.PI);
+      const moonX = cx + radius*Math.cos(angle);
+      const moonY = cy - radius*Math.sin(angle);
 
-      moon.style.left = (cx + radius*Math.cos(angle)) + "px";
-      moon.style.top  = (cy - radius*Math.sin(angle)) + "px";
+      sun.style.transform  = `translate3d(${sunX}px, ${sunY}px, 0)`;
+      moon.style.transform = `translate3d(${moonX}px, ${moonY}px, 0)`;
 
-      const elevation=Math.sin(angle-Math.PI);
-      const t=(elevation+1)/2;
-      const smooth=0.5-0.5*Math.cos(Math.PI*t);
+      const elevation = Math.sin(angle - Math.PI);
+      const t = (elevation + 1) / 2;
+      const smooth = 0.5 - 0.5 * Math.cos(Math.PI * t);
 
-      const nightTop=[0,0,0];
-      const nightBottom=[5,8,20];
-      const dayTop=[70,150,255];
-      const dayBottom=[135,200,255];
+      stars.style.opacity = Math.max(0, -elevation);
 
-      const r1=lerp(nightTop[0],dayTop[0],smooth);
-      const g1=lerp(nightTop[1],dayTop[1],smooth);
-      const b1=lerp(nightTop[2],dayTop[2],smooth);
-      const r2=lerp(nightBottom[0],dayBottom[0],smooth);
-      const g2=lerp(nightBottom[1],dayBottom[1],smooth);
-      const b2=lerp(nightBottom[2],dayBottom[2],smooth);
-
-      const golden=Math.exp(-Math.pow((t-0.5)*6,2));
-
-      document.documentElement.style.background = `
-        linear-gradient(
-          to top,
-          rgb(${Math.round(r2+255*golden*0.3)},
-              ${Math.round(g2+120*golden*0.2)},
-              ${Math.round(b2+60*golden*0.15)}),
-          rgb(${Math.round(r1)},
-              ${Math.round(g1)},
-              ${Math.round(b1)})
-        )
-      `;
-
-      stars.style.opacity=Math.max(0,-elevation);
+      sun.style.opacity  = elevation > -0.1 ? 1 : 0;
+      moon.style.opacity = elevation <  0.1 ? 1 : 0;
 
       clouds.forEach(obj=>{
         let left=parseFloat(obj.el.style.left);
@@ -586,9 +577,6 @@
         obj.el.style.left=left+"vw";
         obj.el.style.opacity=Math.max(0,elevation)*0.9;
       });
-
-      sun.style.opacity = elevation>-0.1 ? 1 : 0;
-      moon.style.opacity = elevation<0.1 ? 1 : 0;
 
       const hours=(angle/(2*Math.PI))*24;
       const mins=(hours-Math.floor(hours))*60;
@@ -607,6 +595,35 @@
       const nightFactor = Math.max(0, -elevation);
       randomShootingStars(nightFactor);
       randomComets(nightFactor);
+
+      frame++;
+      if(frame % 2 === 0){
+        const nightTop=[0,0,0];
+        const nightBottom=[5,8,20];
+        const dayTop=[70,150,255];
+        const dayBottom=[135,200,255];
+
+        const r1=lerp(nightTop[0],dayTop[0],smooth);
+        const g1=lerp(nightTop[1],dayTop[1],smooth);
+        const b1=lerp(nightTop[2],dayTop[2],smooth);
+        const r2=lerp(nightBottom[0],dayBottom[0],smooth);
+        const g2=lerp(nightBottom[1],dayBottom[1],smooth);
+        const b2=lerp(nightBottom[2],dayBottom[2],smooth);
+
+        const golden=Math.exp(-Math.pow((t-0.5)*6,2));
+
+        document.documentElement.style.background = `
+          linear-gradient(
+            to top,
+            rgb(${Math.round(r2+255*golden*0.3)},
+                ${Math.round(g2+120*golden*0.2)},
+                ${Math.round(b2+60*golden*0.15)}),
+            rgb(${Math.round(r1)},
+                ${Math.round(g1)},
+                ${Math.round(b1)})
+          )
+        `;
+      }
 
       requestAnimationFrame(animate);
     }
