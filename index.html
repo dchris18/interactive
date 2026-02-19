@@ -21,17 +21,6 @@
       font-display:swap;
     }
 
-    @font-face{
-      font-family:"DrukTextHeavy";
-      src:
-        url("./fonts/DrukText-Heavy.woff2") format("woff2"),
-        url("./fonts/DrukText-Heavy.woff") format("woff"),
-        url("./fonts/DrukText-Heavy.otf") format("opentype");
-      font-weight:900;
-      font-style:normal;
-      font-display:swap;
-    }
-
     body{
       overflow:hidden;
       font-family:Arial, sans-serif;
@@ -40,19 +29,21 @@
       position:relative;
     }
 
-    .stage{
-      height: 100svh;
-      height: 100vh;
-      width: 100%;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap: clamp(14px, 2.6vmin, 32px);
-      padding: clamp(12px, 2.6vmin, 32px);
-      position:relative;
-      z-index:6;
-    }
+.stage{
+  height: 100svh;
+  height: 100vh;
+  width: 100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  gap: clamp(28px, 5vmin, 70px);
+
+  padding: clamp(16px, 3vmin, 40px);
+  position:relative;
+  z-index:6;
+}
 
     .clock{
       position:relative;
@@ -130,7 +121,7 @@
       border-radius:50%;
       user-select:none;
       text-decoration:none;
-      font-family:"DrukTextHeavy", Arial, sans-serif;
+      font-family:"DrukCondSuper", Arial, sans-serif;
     }
 
     @keyframes pulse{
@@ -143,22 +134,27 @@
     .clock-number:hover{ background:rgba(255,255,255,0.10); }
     .clock-number:active{ transform:translate(-50%,-50%) scale(0.98); }
 
-    h1{
-      font-family:"DrukCondSuper", Impact, "Arial Black", sans-serif;
-      font-weight:400;
-      color:white;
-      text-align:center;
-      letter-spacing:2px;
-      line-height:1.05;
-      text-shadow:3px 3px 12px rgba(0,0,0,0.7);
-      pointer-events:none;
-      margin:0;
-      white-space:nowrap;
-      font-size: clamp(38px, 5.4vmin, 78px);
-      transform-origin:center top;
-      transition:text-shadow 0.5s linear, color 0.5s linear;
-    }
-    @media (max-width: 520px){ h1{ white-space:normal; } }
+h1{
+  font-family:"DrukCondSuper", Impact, "Arial Black", sans-serif;
+  font-weight:400;
+  color:white;
+  text-align:center;
+  letter-spacing:2px;
+  line-height:1.05;
+  text-shadow:3px 3px 12px rgba(0,0,0,0.7);
+  pointer-events:none;
+  margin:0;
+  white-space:nowrap;
+
+  font-size: clamp(56px, 7.5vmin, 110px);
+
+  transform-origin:center top;
+  transition:text-shadow 0.5s linear, color 0.5s linear;
+}
+
+@media (max-width: 520px){
+  h1{ white-space:normal; }
+}
 
     .sun,.moon{
       position:absolute;
