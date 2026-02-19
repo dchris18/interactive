@@ -6,19 +6,9 @@
   <title>Cinematic Sky Clock</title>
 
   <style>
-    /* --- Consistency reset --- */
     * { box-sizing: border-box; }
     html, body { height: 100%; width: 100%; }
     body { margin: 0; }
-
-    /* =========================================================
-       Fonts (GitHub Pages-friendly)
-       Put your fonts in: /fonts/
-       - DrukCond-Super.woff2 (optional but recommended)
-       - DrukCond-Super.otf
-       - DrukText-Heavy.woff2 (optional but recommended)
-       - DrukText-Heavy.otf
-       ========================================================= */
 
     @font-face {
       font-family: "DrukCondSuper";
@@ -42,14 +32,25 @@
 
     body{
       overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
       font-family:Arial, sans-serif;
       background:black;
       transition:background 1.2s linear;
       position:relative;
+    }
+
+    /* ---------- Layout that won’t “zoom-crop” on GitHub ---------- */
+    .stage{
+      height: 100svh;   /* modern safe viewport height */
+      height: 100vh;    /* fallback */
+      width: 100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap: clamp(18px, 3.2vmin, 42px);
+      padding: clamp(14px, 3vmin, 42px);
+      position:relative;
+      z-index:6;
     }
 
     /* ---------- Clock ---------- */
@@ -143,25 +144,24 @@
     .clock-number:hover{ background:rgba(255,255,255,0.10); }
     .clock-number:active{ transform:translate(-50%,-50%) scale(0.98); }
 
-    /* ---------- Headline ---------- */
+    /* ---------- Headline (no absolute positioning) ---------- */
     h1{
       font-family:"DrukCondSuper", sans-serif;
       font-weight:900;
       color:white;
       text-align:center;
       letter-spacing:2px;
-      line-height:1.1;
+      line-height:1.05;
       text-shadow:3px 3px 12px rgba(0,0,0,0.7);
       pointer-events:none;
-      display:inline-block;
-      transform-origin:center bottom;
-      transition:text-shadow 0.5s linear, color 0.5s linear;
-      white-space:nowrap;
       margin:0;
-      font-size:clamp(84px, 9.2vw, 140px);
-      position:absolute;
-      left:50%;
-      translate:-50% 0;
+      white-space:nowrap;
+
+      /* IMPORTANT: scale with viewport but cap hard so GitHub can’t “blow it up” */
+      font-size: clamp(44px, 6.4vmin, 92px);
+
+      transform-origin:center top;
+      transition:text-shadow 0.5s linear, color 0.5s linear;
     }
     @media (max-width: 520px){ h1{ white-space:normal; } }
 
@@ -269,16 +269,18 @@
       filter:blur(0.2px);
     }
 
-    /* ---------- Layout / Responsiveness ---------- */
+    /* ---------- Responsiveness (KEY CHANGE: vmin-based clock) ---------- */
     :root{
-      --clock-size: min(420px, 78vw);
+      /* This is the big fix: use vmin so it never gets too big in one dimension */
+      --clock-size: min(420px, 62vmin);
+
       --celestial-size: 82px;
-      --num-size: clamp(48px, calc(var(--clock-size) * 0.145), 70px);
-      --num-font: clamp(24px, calc(var(--clock-size) * 0.072), 34px);
+      --num-size: clamp(44px, calc(var(--clock-size) * 0.145), 66px);
+      --num-font: clamp(22px, calc(var(--clock-size) * 0.072), 32px);
       --hour-w: clamp(5px, calc(var(--clock-size) * 0.0155), 7.5px);
-      --hour-h: clamp(68px, calc(var(--clock-size) * 0.18), 96px);
+      --hour-h: clamp(66px, calc(var(--clock-size) * 0.18), 94px);
       --min-w: clamp(3px, calc(var(--clock-size) * 0.0102), 4.8px);
-      --min-h: clamp(104px, calc(var(--clock-size) * 0.275), 142px);
+      --min-h: clamp(100px, calc(var(--clock-size) * 0.275), 138px);
       --dot: clamp(12px, calc(var(--clock-size) * 0.032), 16px);
     }
 
@@ -288,25 +290,6 @@
     .center-dot{ width:var(--dot); height:var(--dot); }
     .clock-number{ width:var(--num-size); height:var(--num-size); font-size:var(--num-font); }
     .sun,.moon{ width:var(--celestial-size); height:var(--celestial-size); }
-
-    .stage{
-      height:100vh;
-      width:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      position:relative;
-      z-index:6;
-      transform:translateY(-28px);
-    }
-
-    /* headline below the clock */
-    h1{
-      top:calc(50% + (var(--clock-size) / 2) + 54px);
-    }
-    @media (max-height: 720px){
-      h1{ top:calc(50% + (var(--clock-size) / 2) + 34px); }
-    }
   </style>
 </head>
 
@@ -347,7 +330,7 @@
       stars.appendChild(s);
     }
 
-    /* ---------- Create Clock Numbers (no hardcoded 450) ---------- */
+    /* ---------- Create Clock Numbers ---------- */
     const numbers=[];
     const numberAngles=[];
     for(let n=1;n<=12;n++){
@@ -357,7 +340,7 @@
       let num;
       if(n === 1){
         num=document.createElement("a");
-        num.href="./timer.html"; // relative for GitHub Pages
+        num.href="./timer.html";
         num.setAttribute("aria-label","Go to timer");
         num.setAttribute("title","Go to timer");
       }else{
@@ -572,6 +555,7 @@
       const minuteAngle = ((mins/60)*2*Math.PI) - Math.PI/2;
       checkMinuteHandPulse(minuteAngle);
 
+      /* headline rotation WITHOUT relying on absolute positioning */
       const leanDegree = -2 + 4 * t;
       headline.style.transform = `rotate(${leanDegree * 2.34375}deg)`;
       const glowStrength = 0.3 + 0.7*t;
