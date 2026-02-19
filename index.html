@@ -10,24 +10,26 @@
     html, body { height: 100%; width: 100%; }
     body { margin: 0; }
 
-    @font-face {
-      font-family: "DrukCondSuper";
+    @font-face{
+      font-family:"DrukCondSuper";
       src:
         url("./fonts/DrukCond-Super.woff2") format("woff2"),
+        url("./fonts/DrukCond-Super.woff") format("woff"),
         url("./fonts/DrukCond-Super.otf") format("opentype");
-      font-weight: 900;
-      font-style: normal;
-      font-display: swap;
+      font-weight:400;
+      font-style:normal;
+      font-display:swap;
     }
 
-    @font-face {
-      font-family: "DrukTextHeavy";
+    @font-face{
+      font-family:"DrukTextHeavy";
       src:
         url("./fonts/DrukText-Heavy.woff2") format("woff2"),
+        url("./fonts/DrukText-Heavy.woff") format("woff"),
         url("./fonts/DrukText-Heavy.otf") format("opentype");
-      font-weight: 900;
-      font-style: normal;
-      font-display: swap;
+      font-weight:900;
+      font-style:normal;
+      font-display:swap;
     }
 
     body{
@@ -38,22 +40,20 @@
       position:relative;
     }
 
-    /* ---------- Layout that won’t “zoom-crop” on GitHub ---------- */
     .stage{
-      height: 100svh;   /* modern safe viewport height */
-      height: 100vh;    /* fallback */
+      height: 100svh;
+      height: 100vh;
       width: 100%;
       display:flex;
       flex-direction:column;
       align-items:center;
       justify-content:center;
-      gap: clamp(18px, 3.2vmin, 42px);
-      padding: clamp(14px, 3vmin, 42px);
+      gap: clamp(14px, 2.6vmin, 32px);
+      padding: clamp(12px, 2.6vmin, 32px);
       position:relative;
       z-index:6;
     }
 
-    /* ---------- Clock ---------- */
     .clock{
       position:relative;
       border-radius:50%;
@@ -118,7 +118,6 @@
     .hour-hand{ background:white; border-radius:4px; }
     .minute-hand{ background:white; border-radius:3px; }
 
-    /* ---------- Clock Numbers ---------- */
     .clock-number{
       position:absolute;
       display:flex;
@@ -144,10 +143,9 @@
     .clock-number:hover{ background:rgba(255,255,255,0.10); }
     .clock-number:active{ transform:translate(-50%,-50%) scale(0.98); }
 
-    /* ---------- Headline (no absolute positioning) ---------- */
     h1{
-      font-family:"DrukCondSuper", sans-serif;
-      font-weight:900;
+      font-family:"DrukCondSuper", Impact, "Arial Black", sans-serif;
+      font-weight:400;
       color:white;
       text-align:center;
       letter-spacing:2px;
@@ -156,16 +154,12 @@
       pointer-events:none;
       margin:0;
       white-space:nowrap;
-
-      /* IMPORTANT: scale with viewport but cap hard so GitHub can’t “blow it up” */
-      font-size: clamp(44px, 6.4vmin, 92px);
-
+      font-size: clamp(38px, 5.4vmin, 78px);
       transform-origin:center top;
       transition:text-shadow 0.5s linear, color 0.5s linear;
     }
     @media (max-width: 520px){ h1{ white-space:normal; } }
 
-    /* ---------- Celestial Bodies ---------- */
     .sun,.moon{
       position:absolute;
       border-radius:50%;
@@ -199,7 +193,6 @@
         0 0 44px rgba(255,255,255,0.18);
     }
 
-    /* ---------- Stars ---------- */
     .stars{
       position:absolute;
       width:100%;
@@ -219,7 +212,6 @@
       to{opacity:1; transform:scale(1.3);}
     }
 
-    /* ---------- Clouds ---------- */
     .cloud{
       position:absolute;
       filter:blur(10px);
@@ -232,7 +224,6 @@
       border-radius:50%;
     }
 
-    /* ---------- Shooting Star ---------- */
     .shooting-star{
       position:absolute;
       width:2px;
@@ -245,7 +236,6 @@
       transition:opacity 0.2s linear;
     }
 
-    /* ---------- Comet ---------- */
     .comet{
       position:absolute;
       height:2px;
@@ -269,19 +259,20 @@
       filter:blur(0.2px);
     }
 
-    /* ---------- Responsiveness (KEY CHANGE: vmin-based clock) ---------- */
     :root{
-      /* This is the big fix: use vmin so it never gets too big in one dimension */
-      --clock-size: min(420px, 62vmin);
+      --clock-size: min(380px, 54vmin);
+      --celestial-size: min(46px, 7.5vmin);
 
-      --celestial-size: 82px;
-      --num-size: clamp(44px, calc(var(--clock-size) * 0.145), 66px);
-      --num-font: clamp(22px, calc(var(--clock-size) * 0.072), 32px);
-      --hour-w: clamp(5px, calc(var(--clock-size) * 0.0155), 7.5px);
-      --hour-h: clamp(66px, calc(var(--clock-size) * 0.18), 94px);
-      --min-w: clamp(3px, calc(var(--clock-size) * 0.0102), 4.8px);
-      --min-h: clamp(100px, calc(var(--clock-size) * 0.275), 138px);
-      --dot: clamp(12px, calc(var(--clock-size) * 0.032), 16px);
+      --num-size: clamp(40px, calc(var(--clock-size) * 0.142), 58px);
+      --num-font: clamp(20px, calc(var(--clock-size) * 0.070), 30px);
+
+      --hour-w: clamp(5px, calc(var(--clock-size) * 0.0155), 7px);
+      --hour-h: clamp(62px, calc(var(--clock-size) * 0.175), 86px);
+
+      --min-w: clamp(3px, calc(var(--clock-size) * 0.0102), 4.6px);
+      --min-h: clamp(96px, calc(var(--clock-size) * 0.265), 128px);
+
+      --dot: clamp(11px, calc(var(--clock-size) * 0.030), 15px);
     }
 
     .clock{ width:var(--clock-size); height:var(--clock-size); }
@@ -317,7 +308,6 @@
     const minuteHand=document.getElementById("minuteHand");
     const headline=document.getElementById("headline");
 
-    /* ---------- Create Stars ---------- */
     for(let i=0;i<200;i++){
       const s=document.createElement("div");
       s.classList.add("star");
@@ -330,7 +320,6 @@
       stars.appendChild(s);
     }
 
-    /* ---------- Create Clock Numbers ---------- */
     const numbers=[];
     const numberAngles=[];
     for(let n=1;n<=12;n++){
@@ -367,7 +356,6 @@
     layoutClockNumbers();
     window.addEventListener("resize", layoutClockNumbers);
 
-    /* ---------- Minute-hand triggered pulse ---------- */
     const pulseCooldown = Array(12).fill(false);
     function checkMinuteHandPulse(minuteAngle){
       numbers.forEach((num,i)=>{
@@ -383,7 +371,6 @@
       });
     }
 
-    /* ---------- Clouds ---------- */
     const clouds=[];
     function createCloud(){
       const cloud=document.createElement("div");
@@ -410,7 +397,6 @@
     }
     for(let i=0;i<14;i++) createCloud();
 
-    /* ---------- Shooting Stars ---------- */
     function createShootingStar(){
       const star = document.createElement("div");
       star.classList.add("shooting-star");
@@ -442,7 +428,6 @@
       if(Math.random() < 0.01 * nightFactor){ createShootingStar(); }
     }
 
-    /* ---------- Random Comets (night only) ---------- */
     function createComet(){
       const comet = document.createElement("div");
       comet.classList.add("comet");
@@ -487,7 +472,6 @@
       if(Math.random() < 0.0022 * nightFactor){ createComet(); }
     }
 
-    /* ---------- Sky & Clock Animation ---------- */
     let angle=0;
     function lerp(a,b,t){ return a+(b-a)*t; }
 
@@ -555,7 +539,6 @@
       const minuteAngle = ((mins/60)*2*Math.PI) - Math.PI/2;
       checkMinuteHandPulse(minuteAngle);
 
-      /* headline rotation WITHOUT relying on absolute positioning */
       const leanDegree = -2 + 4 * t;
       headline.style.transform = `rotate(${leanDegree * 2.34375}deg)`;
       const glowStrength = 0.3 + 0.7*t;
