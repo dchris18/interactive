@@ -8,8 +8,8 @@
   <style>
     @font-face {
       font-family: "DrukText-Heavy";
-      src: url("fonts/DrukText-Heavy.otf") format("opentype");
-      font-weight: normal;
+      src: url("Fonts/DrukText-Heavy.otf") format("opentype");
+      font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
@@ -44,12 +44,10 @@
       pointer-events: none;
     }
 
-    /* TEXT */
     .title {
-      font-family: "DrukText-Heavy", sans-serif;
+      font-family: "DrukText-Heavy", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: #fffbe6;
 
-      /* BIGGER + ALL CAPS */
       font-size: clamp(42px, 6vw, 100px);
       text-transform: uppercase;
 
@@ -57,7 +55,6 @@
       text-align: center;
       letter-spacing: 2px;
 
-      /* DROP SHADOW */
       text-shadow:
         0 6px 20px rgba(0,0,0,0.25),
         0 2px 6px rgba(0,0,0,0.2);
@@ -110,9 +107,16 @@
   <div class="title">PLEASE, TAKE A SHORT BREAK</div>
 
   <div class="wrap">
-    <a href="https://www.youtube.com/watch?v=BbtMeLMQFs4" target="_blank">
+    <a class="hourglass-link" href="https://www.youtube.com/watch?v=BbtMeLMQFs4" target="_blank" rel="noopener">
       <img id="hourglass" src="hourglass.png" alt="Spinning hourglass" />
     </a>
   </div>
+
+  <script>
+    // Optional: verify the font actually loaded
+    document.fonts.ready.then(() => {
+      console.log("Fonts ready. DrukText-Heavy loaded:", document.fonts.check('16px "DrukText-Heavy"'));
+    });
+  </script>
 </body>
 </html>
