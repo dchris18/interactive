@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -6,8 +6,6 @@
 <title>Constellation Message</title>
 
 <style>
-  /* If your file is actually .otf, keep it as .otf.
-     If it’s .ttf, swap the URL to DrukText-Heavy.ttf. */
   @font-face{
     font-family: 'DrukTextHeavy';
     src:
@@ -164,6 +162,7 @@
   // -------------------------
   const message = "At the end of the day time moves on";
 
+  // 5x7 bitmap font
   const FONT = {
     "A":["01110","10001","10001","11111","10001","10001","10001"],
     "B":["11110","10001","10001","11110","10001","10001","11110"],
@@ -198,6 +197,22 @@
       "00000","00000","00000","00000","00000","00110","00110"
     ]
   };
+
+  // Smaller + responsive "text" sizing:
+  // Use a scale derived from viewport width, clamped so it stays legible on phones
+  // and doesn't get huge on desktops.
+  function responsiveScale(){
+    // tweak these to taste:
+    const s = W / 155;                 // <- smaller than your old W/85
+    return clamp(s, 4.2, 9.0);         // min/max (in px per bitmap cell)
+  }
+  function responsiveSpacing(scale){
+    // keep spacing proportional so letters don't get chunky at small sizes
+    return clamp(Math.round(scale * 0.22), 1, 3);
+  }
+  function responsiveLineGap(scale){
+    return clamp(Math.round(scale * 0.55), 2, 7);
+  }
 
   function toDotPoints(text, opts){
     const t = text.toUpperCase();
@@ -253,8 +268,9 @@
     const pxW = gw * scale;
     const pxH = gh * scale;
 
+    // Slightly higher on the screen like before, but a bit less aggressive
     const startX = (W - pxW)/2;
-    const startY = (H - pxH)/2 - H*0.12;
+    const startY = (H - pxH)/2 - H*0.08;
 
     return points.map(p => ({
       x: startX + (p.gx - minX) * scale,
@@ -266,35 +282,38 @@
   let links = [];
 
   function rebuildConstellation(){
-    const scale = Math.max(9, Math.min(15, W/85));
+    const scale = responsiveScale();
+    const spacing = responsiveSpacing(scale);
+    const lineGap = responsiveLineGap(scale);
+
+    // Slightly tighter max width so it wraps nicely on phones (smaller text look)
+    const maxWidth = Math.floor(W / (scale * 1.25));
+
     const anchors = toDotPoints(message, {
       scale,
-      spacing: 2,
-      lineGap: 5,
-      maxWidth: Math.floor(W / (scale*0.95))
+      spacing,
+      lineGap,
+      maxWidth
     });
 
     constellation = [];
 
-    // Organic but controlled
-    const baseMaxOffset = Math.max(1.4, Math.min(2.8, W/520)); // gentle movement
-    const hoverRadius = Math.max(140, Math.min(260, W/6));
+    const baseMaxOffset = Math.max(1.2, Math.min(2.2, W/700)); // gentler
+    const hoverRadius = Math.max(120, Math.min(230, W/6.5));
 
     for(const p of anchors){
-      // soften the grid just a touch
-      const ax = p.x + rand(-1.2, 1.2);
-      const ay = p.y + rand(-1.2, 1.2);
+      const ax = p.x + rand(-1.0, 1.0);
+      const ay = p.y + rand(-1.0, 1.0);
 
-      // more stars per dot -> less rigid letter feel
-      const clusterCount = Math.floor(rand(4, 7));
+      // slightly fewer stars per dot => cleaner, smaller “text”
+      const clusterCount = Math.floor(rand(3, 5));
       for(let k=0;k<clusterCount;k++){
-        const spread = rand(0.0, 5.0);
+        const spread = rand(0.0, 4.0);
         const ang = rand(0, Math.PI*2);
 
-        const hx = ax + Math.cos(ang)*spread + rand(-0.45,0.45);
-        const hy = ay + Math.sin(ang)*spread + rand(-0.45,0.45);
+        const hx = ax + Math.cos(ang)*spread + rand(-0.35,0.35);
+        const hy = ay + Math.sin(ang)*spread + rand(-0.35,0.35);
 
-        // scatter direction is fixed per-star (prevents bulge/warping)
         const scatAng = rand(0, Math.PI*2);
         const scatX = Math.cos(scatAng);
         const scatY = Math.sin(scatAng);
@@ -303,23 +322,21 @@
           hx, hy,
           x: hx, y: hy,
 
-          // tiny “flow” drift (2 blended waves)
           p1: rand(0, Math.PI*2),
           p2: rand(0, Math.PI*2),
           s1: rand(0.25, 0.75),
           s2: rand(0.18, 0.55),
-          a1: rand(0.35, 0.95),
-          a2: rand(0.25, 0.75),
+          a1: rand(0.32, 0.85),
+          a2: rand(0.22, 0.68),
 
-          // hover scatter vector
           scatX, scatY,
 
           maxOffset: baseMaxOffset,
           hoverRadius,
           hover: 0,
 
-          r: rand(0.7, 1.9) * (k===0 ? 1.10 : 1.0),
-          a: rand(0.45, 0.95),
+          r: rand(0.65, 1.55) * (k===0 ? 1.08 : 1.0),
+          a: rand(0.42, 0.92),
           tw: rand(0.75, 1.8),
           ph: rand(0, Math.PI*2),
         });
@@ -327,12 +344,12 @@
     }
 
     // links (sparse + stable)
-    const nodeEvery = Math.max(6, Math.floor(constellation.length / 240));
+    const nodeEvery = Math.max(7, Math.floor(constellation.length / 220));
     const nodes = [];
     for(let i=0;i<constellation.length;i+=nodeEvery) nodes.push(i);
 
     links = [];
-    const maxDist = Math.max(34, Math.min(60, W/22));
+    const maxDist = Math.max(30, Math.min(54, W/24));
 
     for(const i of nodes){
       const p = constellation[i];
@@ -381,11 +398,9 @@
   }
 
   function drawConstellation(t){
-    // “how much you’re sweeping past” affects scatter slightly
     const speed = Math.hypot(mouse.vx, mouse.vy);
     const motionBoost = clamp(speed / 20, 0, 1);
 
-    // update star targets and smoothly approach them (organic)
     for(const p of constellation){
       const dx = p.hx - mouse.x;
       const dy = p.hy - mouse.y;
@@ -393,33 +408,28 @@
 
       p.hover = mouse.active ? (1 - smoothstep(0, p.hoverRadius, dist)) : 0;
 
-      // gentle flow around home
       const driftX = Math.sin(t*p.s1 + p.p1) * p.a1 + Math.sin(t*p.s2 + p.p2) * p.a2;
       const driftY = Math.cos(t*(p.s1*0.92) + p.p1) * p.a1 + Math.cos(t*(p.s2*1.05) + p.p2) * p.a2;
 
-      // tiny scatter on hover (fixed direction per star = no bulging)
-      const scatterAmt = p.hover * (0.55 + 0.75*motionBoost); // subtle
-      const scatterMax = 2.8 + 2.2*motionBoost;               // pixels
+      const scatterAmt = p.hover * (0.55 + 0.75*motionBoost);
+      const scatterMax = 2.4 + 1.8*motionBoost;
       const scatterX = p.scatX * scatterMax * scatterAmt;
       const scatterY = p.scatY * scatterMax * scatterAmt;
 
-      // target position
       let tx = p.hx + driftX + scatterX;
       let ty = p.hy + driftY + scatterY;
 
-      // clamp from home to preserve legibility
       const ox = tx - p.hx;
       const oy = ty - p.hy;
       const od = Math.hypot(ox, oy);
-      const limit = p.maxOffset + p.hover*1.6; // a tiny extra room on hover
+      const limit = p.maxOffset + p.hover*1.4;
       if(od > limit){
         const m = limit / od;
         tx = p.hx + ox*m;
         ty = p.hy + oy*m;
       }
 
-      // smooth approach (no spring)
-      const follow = 0.08 + 0.10*p.hover; // slightly faster on hover
+      const follow = 0.08 + 0.10*p.hover;
       p.x = lerp(p.x, tx, follow);
       p.y = lerp(p.y, ty, follow);
     }
@@ -432,7 +442,7 @@
 
       const fade = 1 - (d / maxDist);
       const hoverLine = clamp((a.hover + b.hover) * 0.55, 0, 1);
-      const alpha = (0.10 * fade) + (0.10 * fade * hoverLine);
+      const alpha = (0.09 * fade) + (0.09 * fade * hoverLine);
 
       ctx.strokeStyle = `rgba(165,210,255,${alpha})`;
       ctx.beginPath();
@@ -443,18 +453,15 @@
 
     // stars
     for(const p of constellation){
-      // base twinkle
       const tw = 0.82 + 0.18*Math.sin(t*p.tw + p.ph);
-
-      // slightly stronger twinkle on hover (but still subtle)
       const hoverTw = 1 + (0.10 * p.hover);
       const alpha = clamp(p.a * tw * hoverTw, 0, 1);
 
-      const glow = p.r * (1.9 + 0.9*p.hover);
-      const core = p.r * (1.0 + 0.20*p.hover);
+      const glow = p.r * (1.8 + 0.8*p.hover);
+      const core = p.r * (0.95 + 0.18*p.hover);
 
       ctx.beginPath();
-      ctx.fillStyle = `rgba(190,225,255,${alpha*(0.14 + 0.10*p.hover)})`;
+      ctx.fillStyle = `rgba(190,225,255,${alpha*(0.12 + 0.09*p.hover)})`;
       ctx.arc(p.x, p.y, glow, 0, Math.PI*2);
       ctx.fill();
 
