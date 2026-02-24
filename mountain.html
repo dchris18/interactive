@@ -1,178 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Time Quotes</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mountain Quote</title>
 
-  <!-- If your Fonts folder is next to this HTML file, this path is correct. -->
-  <link rel="preload" href="./Fonts/DrukText-Heavy.otf" as="font" type="font/otf" />
+<style>
+@font-face {
+  font-family: "DrukTextHeavy";
+  src: url("./fonts/DrukText-Heavy.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
 
-  <style>
-    /* ---------- Font ---------- */
-    @font-face{
-      font-family: "DrukTextHeavy";
-      src:
-        local("DrukText Heavy"),
-        local("DrukText-Heavy"),
-        url("./Fonts/DrukText-Heavy.otf") format("opentype");
-      font-weight: 400;
-      font-style: normal;
-      font-display: swap;
-    }
+html, body {
+  height: 100%;
+  margin: 0;
+}
 
-    :root{
-      --maxw: 900px;
-      --inner: 720px;
-    }
+body {
+  background: url("mountain.jpg") center / cover no-repeat fixed;
+  overflow: hidden;
+}
 
-    *{ box-sizing:border-box; }
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0,0,0,0.2),
+    rgba(0,0,0,0.0) 60%
+  );
+  pointer-events: none;
+}
 
-    html, body{ height:100%; }
+.quote {
+  position: fixed;
+  top: clamp(20px, 3vw, 40px);
+  left: clamp(20px, 3vw, 40px);
 
-    body{
-      margin:0;
-      min-height:100svh;
+  font-family: "DrukTextHeavy", sans-serif;
+  color: #10241b;
 
-      display:flex;
-      justify-content:center;
-      align-items:center;
+  font-size: clamp(40px, 6vw, 100px);
+  line-height: 1.05;
 
-      overflow-x:hidden;
-      overflow-y:auto;
+  max-width: 90vw;
+  white-space: pre-line;
 
-      background: url("./wall.png") left top / cover no-repeat fixed;
-      font-family: "DrukTextHeavy", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: geometricPrecision;
-    }
-
-    /* vignette */
-    body::before{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      background: radial-gradient(circle at center, transparent 52%, rgba(0,0,0,0.78) 100%);
-      z-index:0;
-    }
-
-    .wrap{
-      width:100%;
-      max-width:var(--maxw);
-      padding: clamp(14px, 3.2vw, 30px);
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      position:relative;
-      z-index:1;
-    }
-
-    .quotes{
-      width:100%;
-      max-width:var(--inner);
-
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-
-      gap: clamp(10px, 2vh, 18px);
-      text-align:center;
-
-      padding: clamp(14px, 2.4vw, 22px);
-      backdrop-filter: blur(2px);
-      -webkit-backdrop-filter: blur(2px);
-
-      border-radius: 18px;
-    }
-
-    .q{
-      width:100%;
-      margin:0;
-
-      font-size: clamp(15px, 1.35vw, 19px);
-      line-height: 1.65;
-      letter-spacing: 0.02em;
-
-      text-shadow: 0 10px 34px rgba(0,0,0,0.78);
-      transition: color 3.2s ease;
-      will-change: color;
-    }
-
-    .author{
-      display:block;
-      margin-top: 6px;
-      font-size: 0.70em;
-      opacity: 0.9;
-      letter-spacing: 0.05em;
-      white-space: nowrap;
-    }
-
-    /* Mobile: avoid fixed bg jitter */
-    @media (max-width: 520px){
-      body{
-        background-attachment: scroll;
-        background-position: left top;
-      }
-      .q{
-        font-size: clamp(13px, 3.2vw, 16px);
-        letter-spacing: 0.015em;
-      }
-      .quotes{
-        padding: clamp(12px, 3vw, 18px);
-        gap: clamp(10px, 1.8vh, 16px);
-      }
-    }
-  </style>
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.35);
+}
+</style>
 </head>
 
 <body>
-  <main class="wrap">
-    <section class="quotes" aria-label="Quotes about time">
-      <p class="q">"Time is money."<span class="author">Benjamin Franklin</span></p>
-      <p class="q">"The two most powerful warriors are patience and time."<span class="author">Leo Tolstoy</span></p>
-      <p class="q">"Time flies over us, but leaves its shadow behind."<span class="author">Nathaniel Hawthorne</span></p>
-      <p class="q">"Better three hours too soon than a minute too late."<span class="author">William Shakespeare</span></p>
-      <p class="q">"You cannot kill time without injuring eternity."<span class="author">Henry David Thoreau</span></p>
-      <p class="q">"Time flies like an arrow, fruit flies like a banana."<span class="author">Groucho Marx</span></p>
-      <p class="q">"It is the time you have wasted for your rose that makes your rose so important."<span class="author">Antoine de Saint-Exupéry</span></p>
-    </section>
-  </main>
+<div class="scrim"></div>
+<div id="quote" class="quote"></div>
 
-  <script>
-    (function () {
-      const COLORS = [
-        "#1c1d19",
-        "#2b2c26",
-        "#171612",
-        "#2a2d25",
-        "#353229",
-        "#26231d",
-        "#22241f"
-      ];
+<script>
+const text = "The time you enjoy wasting,\nis not wasted time.";
+const el = document.getElementById("quote");
 
-      const quotes = Array.from(document.querySelectorAll(".q"));
+const totalDuration = 4800;
+const delay = Math.max(15, Math.floor(totalDuration / text.length));
 
-      function randColor() {
-        return COLORS[Math.floor(Math.random() * COLORS.length)];
-      }
+let i = 0;
+function typeNext() {
+  el.textContent = text.slice(0, i + 1);
+  i++;
+  if (i < text.length) {
+    setTimeout(typeNext, delay);
+  }
+}
 
-      function animateColors() {
-        for (const el of quotes) el.style.color = randColor();
-      }
-
-      // Ensure font is actually applied (helps when fallback briefly flashes)
-      // If the font fails to load (wrong path/case), the page still works.
-      if (document.fonts && document.fonts.load) {
-        document.fonts.load('16px "DrukTextHeavy"').finally(() => {
-          animateColors();
-          setInterval(animateColors, 4200);
-        });
-      } else {
-        animateColors();
-        setInterval(animateColors, 4200);
-      }
-    })();
-  </script>
+typeNext();
+</script>
 </body>
 </html>
