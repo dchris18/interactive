@@ -30,14 +30,12 @@
     --stroke: rgba(30, 20, 10, 0.18);
     --shadow: rgba(0,0,0,0.55);
 
-    /* ✅ slightly larger overall */
-    --uiScale: 0.96;
-
-    /* design canvas used for even scaling */
-    --stageMax: 980px;
-
-    /* ✅ push the whole piece down */
-    --downShift: 110px;
+    /* sizing */
+    --stageMax: 980px;     /* design canvas */
+    --uiScale: 0.96;       /* overall size */
+    --downShift: 120px;    /* move whole piece down */
+    --padW: 32px;          /* safe padding for fit calc */
+    --padH: 24px;
   }
 
   html, body{ height:100%; }
@@ -45,13 +43,9 @@
   body{
     margin:0;
     min-height:100vh;
-    display:grid;
-    place-items:center;
     overflow:hidden;
-
     background: radial-gradient(circle at 50% 45%, var(--navy-2) 0%, var(--navy-1) 35%, var(--navy-0) 85%);
     animation: navyPulse 60s ease-in-out infinite;
-
     font-family: "DrukTextHeavy", Georgia, "Times New Roman", serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -86,47 +80,49 @@
     mix-blend-mode: soft-light;
   }
 
-  /* =========================
-     EVEN SCALING WRAPPER (ALWAYS CENTERED)
-     - The "hugging right" usually happens when the scaled element
-       has a width that doesn't match its transform box.
-     - Fix: make wrap full-width grid + center the stage inside it.
-     ========================= */
+  /* =========================================================
+     FIX FOR "HUGS RIGHT" ON RESIZE:
+     - Use absolute centering with left/top 50% and translate(-50%,-50%)
+       so transforms can’t bias layout.
+     ========================================================= */
   .wrap{
-    width: 100vw;
-    height: 100vh;
-    display:grid;
-    place-items:center;
+    position:fixed;
+    inset:0;
     overflow:hidden;
   }
 
   .stage{
-    width: min(var(--stageMax), 96vw);
-    height: min(var(--stageMax), 94vh);
+    position:absolute;
+    left:50%;
+    top:50%;
+
+    width: var(--stageMax);
+    height: var(--stageMax);
+
+    /* uniform fit factor (even scaling) */
+    --fit: min(
+      1,
+      calc((100vw - var(--padW)) / var(--stageMax)),
+      calc((100vh - var(--padH)) / var(--stageMax))
+    );
+
+    /* ✅ Always centered, then shifted down, then scaled */
+    transform:
+      translate(-50%, calc(-50% + var(--downShift)))
+      scale(calc(var(--fit) * var(--uiScale)));
+    transform-origin:center center;
+
     display:grid;
     place-items:center;
 
-    /* uniform fit factor */
-    --fit: min(
-      1,
-      calc(96vw / var(--stageMax)),
-      calc(94vh / var(--stageMax))
-    );
-
-    /* ✅ scale evenly AND shift down, while staying centered */
-    transform: translateY(var(--downShift)) scale(calc(var(--fit) * var(--uiScale)));
-    transform-origin: center center;
-
-    /* helps prevent subpixel drift that can look like "right hugging" */
     will-change: transform;
   }
 
-  /* Mobile tuning: keep it centered + readable */
   @media (max-width: 480px){
-    :root{ --uiScale: 0.98; --downShift: 90px; }
+    :root{ --uiScale: 0.98; --downShift: 95px; --padW: 18px; --padH: 18px; }
   }
   @media (max-height: 650px){
-    :root{ --uiScale: 0.92; --downShift: 70px; }
+    :root{ --uiScale: 0.92; --downShift: 75px; }
   }
 
   /* =========================
@@ -193,7 +189,7 @@
   }
 
   /* =========================
-     PAPER: taller + bigger text, no scroll
+     PAPER (tall, no scroll)
      ========================= */
   .paper{
     position:absolute;
@@ -213,7 +209,6 @@
     position:relative;
     border-radius: 16px;
     border: 1px solid rgba(40,25,10,0.28);
-
     background:
       repeating-linear-gradient(0deg, rgba(90,70,40,0.05) 0 1px, transparent 1px 4px),
       repeating-linear-gradient(90deg, rgba(90,70,40,0.035) 0 1px, transparent 1px 5px),
@@ -229,8 +224,7 @@
 
     box-shadow: 0 26px 76px rgba(0,0,0,0.58);
     overflow: visible;
-
-    padding: 42px 36px 82px; /* a touch taller */
+    padding: 42px 36px 82px;
     box-sizing:border-box;
   }
 
@@ -269,13 +263,10 @@
     color: var(--ink);
     text-align:center;
     letter-spacing: 0.03em;
-
-    /* ✅ slightly bigger text */
     font-size: clamp(19px, 1.4vw, 24px);
     line-height: 1.38;
   }
 
-  /* keep fit on short screens without scrolling */
   @media (max-height: 760px){
     .paper p{ font-size: clamp(17px, 1.25vw, 21px); line-height: 1.32; }
     .paper-inner{ padding: 36px 32px 72px; }
@@ -292,7 +283,7 @@
   }
 
   /* =========================
-     SEAL
+     SEAL (HIDE AFTER OPEN)
      ========================= */
   .seal{
     position:absolute;
@@ -307,7 +298,7 @@
     background: transparent;
     cursor:pointer;
     filter: drop-shadow(0 18px 28px rgba(0,0,0,0.50));
-    transition: transform 220ms ease;
+    transition: transform 220ms ease, opacity 180ms ease;
   }
   .seal:active{ transform: translate(-50%, -50%) scale(0.975); }
   .seal:focus-visible{
@@ -315,6 +306,12 @@
     outline-offset: 4px;
   }
   .seal svg{ width:100%; height:100%; display:block; }
+
+  /* ✅ when opened, the seal disappears completely */
+  .envelope.open .seal{
+    opacity: 0;
+    pointer-events:none;
+  }
 
   .reseal-hit{
     position:absolute;
