@@ -36,17 +36,17 @@
 
       --dot: clamp(11px, calc(var(--clock-size) * 0.030), 15px);
 
-      --stage-shift: clamp(70px, 12vmin, 170px);
-      --stage-gap: clamp(28px, 5.2vmin, 78px);
+      --stage-shift: clamp(60px, 10vmin, 160px);
+      --stage-gap: clamp(20px, 4.6vmin, 70px);
 
-      --title-size: clamp(58px, 8.2vmin, 124px);
+      --title-size: clamp(54px, 8vmin, 120px);
     }
 
     @media (max-height: 740px){
       :root{
-        --stage-shift: clamp(40px, 8vmin, 110px);
-        --stage-gap: clamp(18px, 3.8vmin, 46px);
-        --title-size: clamp(44px, 7.2vmin, 98px);
+        --stage-shift: clamp(36px, 7vmin, 100px);
+        --stage-gap: clamp(16px, 3.6vmin, 44px);
+        --title-size: clamp(40px, 6.8vmin, 92px);
       }
     }
 
@@ -54,9 +54,9 @@
       :root{
         --clock-size: min(340px, 72vmin);
         --celestial-size: min(68px, 14vmin);
-        --stage-shift: clamp(40px, 9vmin, 120px);
-        --stage-gap: clamp(18px, 4.2vmin, 54px);
-        --title-size: clamp(44px, 10vmin, 92px);
+        --stage-shift: clamp(32px, 8vmin, 110px);
+        --stage-gap: clamp(16px, 4vmin, 52px);
+        --title-size: clamp(42px, 10vmin, 92px);
       }
     }
 
@@ -84,137 +84,19 @@
       position:fixed;
       inset:0;
       width:100vw;
+      height:100svh;
       height:100dvh;
       height:100vh;
       overflow:hidden;
+      isolation:isolate;
     }
 
-    .stage{
-      width:100%;
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap: var(--stage-gap);
-      padding: clamp(14px, 3vmin, 38px);
-      position:relative;
-      z-index:6;
-      transform: translateY(var(--stage-shift));
-      will-change: transform;
-    }
-
-    .clock{
-      width:var(--clock-size);
-      height:var(--clock-size);
-      position:relative;
-      border-radius:50%;
-      background:rgba(255,255,255,0.18);
-      backdrop-filter:blur(18px);
-      border:6px solid rgba(255,255,255,0.75);
-      box-shadow:
-        0 24px 70px rgba(0,0,0,0.45),
-        0 0 50px rgba(0,0,0,0.35),
-        inset 0 0 28px rgba(255,255,255,0.22),
-        inset 0 0 10px rgba(255,255,255,0.08);
-      z-index:5;
-    }
-
-    .clock::before{
-      content:"";
-      position:absolute;
-      inset:10px;
-      border-radius:50%;
-      border:1px solid rgba(255,255,255,0.18);
-      box-shadow:
-        inset 0 0 18px rgba(255,255,255,0.08),
-        inset 0 0 2px rgba(255,255,255,0.12);
-      pointer-events:none;
-    }
-
-    .clock::after{
-      content:"";
+    .sky-layer{
       position:absolute;
       inset:0;
-      border-radius:50%;
-      background:
-        radial-gradient(circle at 30% 20%,
-          rgba(255,255,255,0.22),
-          rgba(255,255,255,0.08) 28%,
-          rgba(255,255,255,0.02) 45%,
-          rgba(255,255,255,0) 60%),
-        radial-gradient(circle at 70% 85%,
-          rgba(0,0,0,0.12),
-          rgba(0,0,0,0) 55%);
       pointer-events:none;
+      z-index:0;
     }
-
-    .hand{
-      position:absolute;
-      bottom:50%;
-      left:50%;
-      transform-origin:bottom center;
-      transform:translateX(-50%);
-    }
-    .hour-hand{ width:var(--hour-w); height:var(--hour-h); background:white; border-radius:4px; }
-    .minute-hand{ width:var(--min-w); height:var(--min-h); background:white; border-radius:3px; }
-
-    .center-dot{
-      width:var(--dot);
-      height:var(--dot);
-      position:absolute;
-      background:white;
-      border-radius:50%;
-      top:50%;
-      left:50%;
-      transform:translate(-50%,-50%);
-      z-index:10;
-    }
-
-    .clock-number{
-      width:var(--num-size);
-      height:var(--num-size);
-      font-size:var(--num-font);
-      position:absolute;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      color:white;
-      font-weight:900;
-      transform:translate(-50%,-50%);
-      cursor:pointer;
-      border-radius:50%;
-      user-select:none;
-      text-decoration:none;
-      font-family:"DrukTextHeavy", Arial, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    @keyframes pulse{
-      0%   { transform:translate(-50%,-50%) scale(1); color:white; text-shadow:none; }
-      50%  { transform:translate(-50%,-50%) scale(1.15); color:#FFD700; text-shadow:0 0 5px #FFD700,0 0 10px #FFA500; }
-      100% { transform:translate(-50%,-50%) scale(1); color:white; text-shadow:none; }
-    }
-    .clock-number.pulsing{ animation:pulse 0.4s ease; }
-    .clock-number:hover{ background:rgba(255,255,255,0.10); }
-    .clock-number:active{ transform:translate(-50%,-50%) scale(0.98); }
-
-    h1{
-      font-family:"DrukCondSuper", Impact, "Arial Black", sans-serif;
-      font-weight:400;
-      color:white;
-      text-align:center;
-      letter-spacing:2px;
-      line-height:1.05;
-      text-shadow:3px 3px 12px rgba(0,0,0,0.7);
-      pointer-events:none;
-      margin:0;
-      white-space:nowrap;
-      font-size: var(--title-size);
-      transform-origin:center top;
-      transition:text-shadow 0.5s linear, color 0.5s linear;
-    }
-    @media (max-width:520px){ h1{ white-space:normal; } }
 
     .sun,.moon{
       width:var(--celestial-size);
@@ -227,6 +109,7 @@
       overflow:hidden;
       transform: translate3d(0,0,0);
       will-change: transform, opacity;
+      z-index:1;
     }
 
     .sun{
@@ -269,30 +152,35 @@
 
     .stars{
       position:absolute;
-      width:100%;
-      height:100%;
+      inset:0;
       pointer-events:none;
       opacity:0;
       transition:opacity 2s ease;
+      z-index:0;
     }
-
     .star{
       position:absolute;
       background:white;
       border-radius:50%;
       animation:twinkle infinite alternate ease-in-out;
     }
-
     @keyframes twinkle{
       from{opacity:0.3; transform:scale(0.8);}
       to{opacity:1; transform:scale(1.3);}
     }
 
+    .clouds{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:2;
+    }
     .cloud{
       position:absolute;
       filter:blur(10px);
       opacity:0;
       transition:opacity 2s ease;
+      pointer-events:none;
     }
     .cloud div{
       position:absolute;
@@ -300,6 +188,12 @@
       border-radius:50%;
     }
 
+    .fx{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:3;
+    }
     .shooting-star{
       position:absolute;
       width:2px;
@@ -311,7 +205,6 @@
       box-shadow:0 0 5px white, 0 0 10px white;
       transition:opacity 0.2s linear;
     }
-
     .comet{
       position:absolute;
       height:2px;
@@ -334,14 +227,154 @@
       background:radial-gradient(circle, rgba(255,255,255,1), rgba(255,255,255,0.35) 55%, rgba(255,255,255,0) 75%);
       filter:blur(0.2px);
     }
+
+    .stage{
+      width:100%;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap: var(--stage-gap);
+      padding: clamp(14px, 3vmin, 38px);
+      position:relative;
+      z-index:10;
+      transform: translateY(var(--stage-shift));
+      will-change: transform;
+      pointer-events:none;
+    }
+    .stage > *{ pointer-events:auto; }
+
+    .clock{
+      width:var(--clock-size);
+      height:var(--clock-size);
+      position:relative;
+      border-radius:50%;
+      background:rgba(255,255,255,0.18);
+      backdrop-filter:blur(18px);
+      border:6px solid rgba(255,255,255,0.75);
+      box-shadow:
+        0 24px 70px rgba(0,0,0,0.45),
+        0 0 50px rgba(0,0,0,0.35),
+        inset 0 0 28px rgba(255,255,255,0.22),
+        inset 0 0 10px rgba(255,255,255,0.08);
+      z-index:5;
+    }
+
+    .clock::before{
+      content:"";
+      position:absolute;
+      inset:10px;
+      border-radius:50%;
+      border:1px solid rgba(255,255,255,0.18);
+      box-shadow:
+        inset 0 0 18px rgba(255,255,255,0.08),
+        inset 0 0 2px rgba(255,255,255,0.12);
+      pointer-events:none;
+      z-index:1;
+    }
+
+    .clock::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 30% 20%,
+          rgba(255,255,255,0.22),
+          rgba(255,255,255,0.08) 28%,
+          rgba(255,255,255,0.02) 45%,
+          rgba(255,255,255,0) 60%),
+        radial-gradient(circle at 70% 85%,
+          rgba(0,0,0,0.12),
+          rgba(0,0,0,0) 55%);
+      pointer-events:none;
+      z-index:2;
+    }
+
+    .hand{
+      position:absolute;
+      bottom:50%;
+      left:50%;
+      transform-origin:bottom center;
+      transform:translateX(-50%);
+      z-index:3;
+    }
+    .hour-hand{ width:var(--hour-w); height:var(--hour-h); background:white; border-radius:4px; }
+    .minute-hand{ width:var(--min-w); height:var(--min-h); background:white; border-radius:3px; }
+
+    .center-dot{
+      width:var(--dot);
+      height:var(--dot);
+      position:absolute;
+      background:white;
+      border-radius:50%;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      z-index:6;
+      pointer-events:none;
+    }
+
+    .clock-number{
+      width:var(--num-size);
+      height:var(--num-size);
+      font-size:var(--num-font);
+      position:absolute;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      color:white;
+      font-weight:900;
+      transform:translate(-50%,-50%);
+      cursor:pointer;
+      border-radius:50%;
+      user-select:none;
+      text-decoration:none;
+      font-family:"DrukTextHeavy", Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      z-index:7;
+      pointer-events:auto;
+      touch-action:manipulation;
+    }
+
+    @keyframes pulse{
+      0%   { transform:translate(-50%,-50%) scale(1); color:white; text-shadow:none; }
+      50%  { transform:translate(-50%,-50%) scale(1.15); color:#FFD700; text-shadow:0 0 5px #FFD700,0 0 10px #FFA500; }
+      100% { transform:translate(-50%,-50%) scale(1); color:white; text-shadow:none; }
+    }
+    .clock-number.pulsing{ animation:pulse 0.4s ease; }
+    .clock-number:hover{ background:rgba(255,255,255,0.10); }
+    .clock-number:active{ transform:translate(-50%,-50%) scale(0.98); }
+
+    h1{
+      font-family:"DrukCondSuper", Impact, "Arial Black", sans-serif;
+      font-weight:400;
+      color:white;
+      text-align:center;
+      letter-spacing:2px;
+      line-height:1.05;
+      text-shadow:3px 3px 12px rgba(0,0,0,0.7);
+      pointer-events:none;
+      margin:0;
+      white-space:nowrap;
+      font-size: var(--title-size);
+      transform-origin:center top;
+      transition:text-shadow 0.5s linear, color 0.5s linear;
+    }
+    @media (max-width:520px){ h1{ white-space:normal; } }
   </style>
 </head>
 
 <body>
-  <div class="scene">
+  <div class="scene" id="scene">
+    <div class="sky-layer"></div>
     <div class="sun"></div>
     <div class="moon"></div>
+
     <div class="stars" id="stars"></div>
+    <div class="clouds" id="clouds"></div>
+    <div class="fx" id="fx"></div>
 
     <div class="stage">
       <div class="clock" id="clock">
@@ -355,9 +388,13 @@
   </div>
 
   <script>
+    const scene = document.getElementById("scene");
     const sun = document.querySelector(".sun");
     const moon = document.querySelector(".moon");
     const stars = document.getElementById("stars");
+    const cloudsWrap = document.getElementById("clouds");
+    const fx = document.getElementById("fx");
+
     const clock = document.getElementById("clock");
     const hourHand = document.getElementById("hourHand");
     const minuteHand = document.getElementById("minuteHand");
@@ -369,8 +406,8 @@
       const size=Math.random()*3+1;
       s.style.width=size+"px";
       s.style.height=size+"px";
-      s.style.top=Math.random()*100+"vh";
-      s.style.left=Math.random()*100+"vw";
+      s.style.top=Math.random()*100+"%";
+      s.style.left=Math.random()*100+"%";
       s.style.animationDuration=(Math.random()*3+2)+"s";
       stars.appendChild(s);
     }
@@ -419,7 +456,9 @@
       }
     }
 
-    window.addEventListener("resize", layoutClockNumbers);
+    const ro = new ResizeObserver(layoutClockNumbers);
+    ro.observe(clock);
+
     if(document.fonts && document.fonts.ready){
       document.fonts.ready.then(layoutClockNumbers);
     }
@@ -448,8 +487,8 @@
       const size=Math.random()*120+80;
       cloud.style.width=size+"px";
       cloud.style.height=size*0.6+"px";
-      cloud.style.top=Math.random()*70+"vh";
-      cloud.style.left=Math.random()*100+"vw";
+      cloud.style.top=Math.random()*70+"%";
+      cloud.style.left=(Math.random()*120 - 20) + "%";
 
       for(let i=0;i<5;i++){
         const puff=document.createElement("div");
@@ -461,7 +500,7 @@
         cloud.appendChild(puff);
       }
 
-      document.body.appendChild(cloud);
+      cloudsWrap.appendChild(cloud);
       clouds.push({el:cloud,speed:0.05+Math.random()*0.15});
     }
     for(let i=0;i<14;i++) createCloud();
@@ -469,10 +508,13 @@
     function createShootingStar(){
       const star = document.createElement("div");
       star.classList.add("shooting-star");
-      document.body.appendChild(star);
+      fx.appendChild(star);
 
-      const startX = Math.random()*document.documentElement.clientWidth;
-      const startY = Math.random()*document.documentElement.clientHeight*0.5;
+      const vw = document.documentElement.clientWidth;
+      const vh = document.documentElement.clientHeight;
+
+      const startX = Math.random()*vw;
+      const startY = Math.random()*vh*0.5;
       const length = 100 + Math.random()*100;
       const ang = -0.3 + Math.random()*0.6;
 
@@ -493,19 +535,16 @@
         }
       },16);
     }
-    function randomShootingStars(nightFactor){
-      if(Math.random() < 0.01 * nightFactor){ createShootingStar(); }
-    }
 
     function createComet(){
       const comet = document.createElement("div");
       comet.classList.add("comet");
-      document.body.appendChild(comet);
+      fx.appendChild(comet);
 
-      const startSide = Math.random() < 0.5 ? "left" : "right";
       const vw = document.documentElement.clientWidth;
       const vh = document.documentElement.clientHeight;
 
+      const startSide = Math.random() < 0.5 ? "left" : "right";
       const startX = startSide === "left" ? -200 : vw + 200;
       const startY = Math.random() * vh * 0.45;
 
@@ -539,18 +578,6 @@
 
       travel.onfinish = ()=> comet.remove();
     }
-    function randomComets(nightFactor){
-      if(Math.random() < 0.0022 * nightFactor){ createComet(); }
-    }
-
-    let vw = 0, vh = 0;
-    function setViewport(){
-      vw = document.documentElement.clientWidth;
-      vh = document.documentElement.clientHeight;
-    }
-    setViewport();
-    window.addEventListener("resize", setViewport);
-    if(window.visualViewport) window.visualViewport.addEventListener("resize", setViewport);
 
     function lerp(a,b,t){ return a+(b-a)*t; }
 
@@ -559,6 +586,9 @@
 
     function animate(){
       angle += 0.0015;
+
+      const vw = document.documentElement.clientWidth;
+      const vh = document.documentElement.clientHeight;
 
       const cx = vw / 2;
       const cy = vh * 0.9;
@@ -584,8 +614,8 @@
       clouds.forEach(obj=>{
         let left=parseFloat(obj.el.style.left);
         left+=obj.speed;
-        if(left>100) left=-20;
-        obj.el.style.left=left+"vw";
+        if(left>110) left=-30;
+        obj.el.style.left=left+"%";
         obj.el.style.opacity=Math.max(0,elevation)*0.9;
       });
 
@@ -604,8 +634,8 @@
       headline.style.textShadow = `0 0 ${10*glowStrength}px #FFD700,0 0 ${20*glowStrength}px #FFA500`;
 
       const nightFactor = Math.max(0, -elevation);
-      randomShootingStars(nightFactor);
-      randomComets(nightFactor);
+      if(Math.random() < 0.01 * nightFactor) createShootingStar();
+      if(Math.random() < 0.0022 * nightFactor) createComet();
 
       frame++;
       if(frame % 2 === 0){
