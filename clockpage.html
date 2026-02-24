@@ -1,209 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Choose a Clock</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Choose a Clock</title>
 
-  <style>
-    /* --- Druk Cond Super (font file is inside /fonts) --- */
-    @font-face {
-      font-family: "DrukCondSuper";
-      src: url("fonts/DrukCond-Super.otf") format("opentype");
-      font-weight: 400;
-      font-style: normal;
-      font-display: swap;
-    }
+<!-- Preload fixes flash -->
+<link rel="preload" href="Fonts/DrukCond-Super.otf" as="font" type="font/otf" crossorigin>
 
-    body {
-      margin: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: #fff8e7;
-      overflow: hidden;
-    }
+<style>
+  @font-face {
+    font-family: "DrukCondSuper";
+    src: url("Fonts/DrukCond-Super.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+  }
 
-    /* Big centered text BEHIND clocks */
-    .centerText {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      font-family: "DrukCondSuper", Arial, sans-serif;
-      font-size: clamp(72px, 9vw, 150px);
-      color: #FFEBCD;
-      text-align: center;
-      letter-spacing: 2px;
-      white-space: nowrap;
-      z-index: 0;
-      pointer-events: none; /* allow clicks on clocks */
-      user-select: none;
-    }
+  body {
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #fff8e7;
+    overflow: hidden;
+  }
 
-    /* Move the LINK (so img + click area move together) */
-    a.clockLink {
-      position: absolute;
-      display: block;
-      z-index: 5; /* above text */
-    }
+  .centerText {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-family: "DrukCondSuper", Arial, sans-serif;
+    font-size: clamp(60px, 8vw, 130px);
+    color: #FFEBCD;
+    text-align: center;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+  }
 
-    .clock {
-      width: 220px; /* larger images */
-      height: auto;
-      cursor: pointer;
-      transition: transform 0.3s;
-      user-select: none;
-      -webkit-user-drag: none;
-      will-change: transform;
-    }
+  a.clockLink {
+    position: absolute;
+    display: block;
+    z-index: 5;
+  }
 
-    a.clockLink:hover {
-      z-index: 10;
-    }
+  .clock {
+    width: 150px; /* ⬅️ smaller */
+    height: auto;
+    cursor: pointer;
+    transition: transform 0.3s;
+    user-select: none;
+    -webkit-user-drag: none;
+    will-change: transform;
+  }
 
-    a.clockLink:hover .clock {
-      transform: scale(1.15);
-    }
-  </style>
+  a.clockLink:hover {
+    z-index: 10;
+  }
+
+  a.clockLink:hover .clock {
+    transform: scale(1.15);
+  }
+</style>
 </head>
 
 <body>
-  <div class="centerText">Time can take many forms</div>
+<div class="centerText">Time can take many forms</div>
 
-  <a href="clock1.html" class="clockLink">
-    <img src="clock1.png" class="clock" alt="Clock 1" />
-  </a>
+<a href="clock1.html" class="clockLink">
+  <img src="clock1.png" class="clock" />
+</a>
 
-  <a href="clock2.html" class="clockLink">
-    <img src="clock6.png" class="clock" alt="Clock 2" />
-  </a>
+<a href="clock2.html" class="clockLink">
+  <img src="clock6.png" class="clock" />
+</a>
 
-  <a href="clock3.html" class="clockLink">
-    <img src="clock3.png" class="clock" alt="Clock 3" />
-  </a>
+<a href="clock3.html" class="clockLink">
+  <img src="clock3.png" class="clock" />
+</a>
 
-  <a href="watch4.html" class="clockLink">
-    <img src="Watch.png" class="clock" alt="Clock 4" />
-  </a>
+<a href="watch4.html" class="clockLink">
+  <img src="Watch.png" class="clock" />
+</a>
 
-  <a href="clock5.html" class="clockLink">
-    <img src="clock5.png" class="clock" alt="Clock 5" />
-  </a>
+<a href="clock5.html" class="clockLink">
+  <img src="clock5.png" class="clock" />
+</a>
 
-  <script>
-    const links = Array.from(document.querySelectorAll(".clockLink"));
+<script>
+const links = Array.from(document.querySelectorAll(".clockLink"));
 
-    // Must match .clock width
-    const SIZE = 220;
+const SIZE = 150; // ⬅️ matches new image size
+const SPEED = 0.9;
 
-    // Slightly quicker drift
-    const SPEED = 0.9;
+const screenW = () => window.innerWidth;
+const screenH = () => window.innerHeight;
 
-    const screenW = () => window.innerWidth;
-    const screenH = () => window.innerHeight;
+const objs = links.map((el) => {
+  const x = Math.random() * (screenW() - SIZE);
+  const y = Math.random() * (screenH() - SIZE);
 
-    // Store moving objects
-    const objs = links.map((el) => {
-      const x = Math.random() * (screenW() - SIZE);
-      const y = Math.random() * (screenH() - SIZE);
+  el.style.left = x + "px";
+  el.style.top = y + "px";
 
-      el.style.left = x + "px";
-      el.style.top = y + "px";
+  return {
+    el,
+    x,
+    y,
+    vx: (Math.random() - 0.5) * SPEED * 2,
+    vy: (Math.random() - 0.5) * SPEED * 2,
+  };
+});
 
-      return {
-        el,
-        x,
-        y,
-        vx: (Math.random() - 0.5) * SPEED * 2,
-        vy: (Math.random() - 0.5) * SPEED * 2,
-      };
-    });
+function clampToScreen(o) {
+  o.x = Math.max(0, Math.min(o.x, screenW() - SIZE));
+  o.y = Math.max(0, Math.min(o.y, screenH() - SIZE));
+}
 
-    function clampToScreen(o) {
-      o.x = Math.max(0, Math.min(o.x, screenW() - SIZE));
-      o.y = Math.max(0, Math.min(o.y, screenH() - SIZE));
+function animate() {
+  for (const o of objs) {
+    o.x += o.vx;
+    o.y += o.vy;
+
+    if (o.x <= 0 || o.x + SIZE >= screenW()) o.vx *= -1;
+    if (o.y <= 0 || o.y + SIZE >= screenH()) o.vy *= -1;
+  }
+
+  for (let i = 0; i < objs.length; i++) {
+    for (let j = i + 1; j < objs.length; j++) {
+      const a = objs[i];
+      const b = objs[j];
+
+      const dx = (a.x + SIZE/2) - (b.x + SIZE/2);
+      const dy = (a.y + SIZE/2) - (b.y + SIZE/2);
+
+      const dist = Math.sqrt(dx*dx + dy*dy) || 0.0001;
+
+      if (dist < SIZE) {
+        const overlap = SIZE - dist;
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        a.x += nx * overlap/2;
+        a.y += ny * overlap/2;
+        b.x -= nx * overlap/2;
+        b.y -= ny * overlap/2;
+
+        const tvx = a.vx, tvy = a.vy;
+        a.vx = b.vx;
+        a.vy = b.vy;
+        b.vx = tvx;
+        b.vy = tvy;
+      }
     }
+  }
 
-    function animate() {
-      // 1) Move + wall bounce
-      for (const o of objs) {
-        o.x += o.vx;
-        o.y += o.vy;
+  for (const o of objs) {
+    o.el.style.left = o.x + "px";
+    o.el.style.top = o.y + "px";
+  }
 
-        if (o.x <= 0) {
-          o.x = 0;
-          o.vx *= -1;
-        } else if (o.x + SIZE >= screenW()) {
-          o.x = screenW() - SIZE;
-          o.vx *= -1;
-        }
+  requestAnimationFrame(animate);
+}
 
-        if (o.y <= 0) {
-          o.y = 0;
-          o.vy *= -1;
-        } else if (o.y + SIZE >= screenH()) {
-          o.y = screenH() - SIZE;
-          o.vy *= -1;
-        }
-      }
+animate();
 
-      // 2) Collisions (circle approximation)
-      for (let i = 0; i < objs.length; i++) {
-        for (let j = i + 1; j < objs.length; j++) {
-          const a = objs[i];
-          const b = objs[j];
-
-          const ax = a.x + SIZE / 2;
-          const ay = a.y + SIZE / 2;
-          const bx = b.x + SIZE / 2;
-          const by = b.y + SIZE / 2;
-
-          const dx = ax - bx;
-          const dy = ay - by;
-
-          const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
-          const minDist = SIZE; // r+r = SIZE/2 + SIZE/2
-
-          if (dist < minDist) {
-            // Push apart
-            const overlap = minDist - dist;
-            const nx = dx / dist;
-            const ny = dy / dist;
-
-            a.x += nx * (overlap / 2);
-            a.y += ny * (overlap / 2);
-            b.x -= nx * (overlap / 2);
-            b.y -= ny * (overlap / 2);
-
-            clampToScreen(a);
-            clampToScreen(b);
-
-            // Simple "bounce": swap velocities
-            const tvx = a.vx,
-              tvy = a.vy;
-            a.vx = b.vx;
-            a.vy = b.vy;
-            b.vx = tvx;
-            b.vy = tvy;
-          }
-        }
-      }
-
-      // 3) Apply positions
-      for (const o of objs) {
-        o.el.style.left = o.x + "px";
-        o.el.style.top = o.y + "px";
-      }
-
-      requestAnimationFrame(animate);
-    }
-
-    animate();
-
-    // Keep everything on-screen on resize
-    window.addEventListener("resize", () => {
-      for (const o of objs) clampToScreen(o);
-    });
-  </script>
+window.addEventListener("resize", () => {
+  for (const o of objs) clampToScreen(o);
+});
+</script>
 </body>
 </html>
