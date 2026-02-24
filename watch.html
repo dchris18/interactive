@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Broken Clock</title>
 
-<link rel="preload" href="Fonts/DrukCond-Super.otf" as="font" type="font/otf">
+<link rel="preload" href="Fonts/DrukCond-Super.otf" as="font" type="font/otf" crossorigin>
 
 <style>
   @font-face{
@@ -13,7 +13,7 @@
     src: url("Fonts/DrukCond-Super.otf") format("opentype");
     font-weight: 400;
     font-style: normal;
-    font-display: swap;
+    font-display: block;
   }
 
   :root{
@@ -68,7 +68,6 @@
     mix-blend-mode: soft-light;
   }
 
-  /* ✅ Layout wrapper that reserves space so text + watch never collide */
   .layout{
     position:relative;
     width:min(980px, 92vw);
@@ -77,13 +76,13 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    gap: clamp(18px, 4vh, 44px);         /* space between headline and watch */
-    padding-top: clamp(18px, 5vh, 54px); /* keeps headline off the top edge */
+
+    gap: clamp(14px, 3.2vh, 34px);
+    padding-top: clamp(8px, 2.4vh, 18px);
     padding-bottom: clamp(14px, 4vh, 44px);
     box-sizing:border-box;
   }
 
-  /* ✅ Bigger text, but still responsive and contained */
   .quote{
     width:100%;
     text-align:center;
@@ -92,8 +91,7 @@
     font-weight:400;
     text-transform:uppercase;
 
-    /* bigger than before */
-    font-size: clamp(34px, 4.6vw, 78px);
+    font-size: clamp(36px, 4.9vw, 84px);
     line-height:0.98;
     letter-spacing:0.06em;
 
@@ -102,21 +100,21 @@
       0 8px 42px rgba(0,0,0,0.75),
       0 0 70px rgba(255,255,255,0.10);
 
-    /* prevents overflow collisions on tiny screens */
     padding: 0 2vw;
     box-sizing:border-box;
+
+    transform: translateY(clamp(-10px, -1.6vh, -18px));
   }
 
   .stage{
     position:relative;
     width: min(460px, 86vw);
-    height: min(520px, 68vh); /* slightly shorter so it stays below text */
+    height: min(520px, 68vh);
     display:flex;
     align-items:center;
     justify-content:center;
   }
 
-  /* ===== band/strap ===== */
   .band{
     position:absolute;
     top:50%;
@@ -359,20 +357,26 @@
     mix-blend-mode:screen;
   }
 
-  /* ✅ If the screen is short, tighten spacing so everything still fits */
   @media (max-height: 680px){
     .layout{
-      gap: clamp(12px, 2.6vh, 26px);
-      padding-top: clamp(12px, 3vh, 28px);
+      gap: clamp(10px, 2.2vh, 22px);
+      padding-top: clamp(6px, 1.8vh, 14px);
     }
     .stage{
       height: min(480px, 62vh);
     }
   }
 
-  /* ✅ Tiny phones: slightly reduce headline so it never overlaps */
   @media (max-width: 360px){
-    .quote{ font-size: clamp(30px, 5.2vw, 62px); }
+    .quote{ font-size: clamp(34px, 5.6vw, 70px); }
+  }
+
+  html.fonts-loading .quote{
+    opacity:0;
+  }
+  html.fonts-loaded .quote{
+    opacity:1;
+    transition: opacity 120ms ease;
   }
 </style>
 </head>
@@ -410,6 +414,20 @@
 
 <script>
 (function(){
+  document.documentElement.classList.add('fonts-loading');
+  if (document.fonts && document.fonts.load) {
+    Promise.race([
+      document.fonts.load('400 1em "DrukCondSuper"'),
+      new Promise(res => setTimeout(res, 1800))
+    ]).then(() => {
+      document.documentElement.classList.remove('fonts-loading');
+      document.documentElement.classList.add('fonts-loaded');
+    });
+  } else {
+    document.documentElement.classList.remove('fonts-loading');
+    document.documentElement.classList.add('fonts-loaded');
+  }
+
   const H = Math.floor(Math.random() * 12) + 1;
   const M = Math.floor(Math.random() * 60);
   const S = Math.floor(Math.random() * 60);
