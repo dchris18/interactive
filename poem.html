@@ -30,11 +30,11 @@
     --stroke: rgba(30, 20, 10, 0.18);
     --shadow: rgba(0,0,0,0.55);
 
-    /* ✅ a bit bigger overall */
-    --uiScale: 0.74;
+    /* ✅ BIGGER overall */
+    --uiScale: 0.92;
 
-    /* base stage size used for fit math */
-    --stageMax: 860px;
+    /* Design canvas used for EVEN scaling */
+    --stageMax: 980px;
   }
 
   html, body{ height:100%; }
@@ -43,7 +43,7 @@
     margin:0;
     min-height:100vh;
 
-    /* ✅ perfectly centered */
+    /* ✅ center always */
     display:grid;
     place-items:center;
 
@@ -53,6 +53,7 @@
     font-family: "DrukTextHeavy", Georgia, "Times New Roman", serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    touch-action: manipulation;
   }
 
   @keyframes navyPulse{
@@ -84,30 +85,33 @@
   }
 
   /* =========================
-     CENTERED + RESPONSIVE SCALE
+     EVEN SCALING WRAPPER
+     - scales uniformly with window resize
+     - works on mobile + desktop
      ========================= */
   .wrap{
-    width: min(var(--stageMax), 94vw);
-    height: min(var(--stageMax), 92vh);
+    width: min(var(--stageMax), 96vw);
+    height: min(var(--stageMax), 94vh);
     display:grid;
     place-items:center;
 
+    /* uniform fit factor (same scale in X/Y) */
     --fit: min(
       1,
-      calc(94vw / var(--stageMax)),
-      calc(92vh / var(--stageMax))
+      calc(96vw / var(--stageMax)),
+      calc(94vh / var(--stageMax))
     );
 
     transform: scale(calc(var(--fit) * var(--uiScale)));
     transform-origin: center center;
   }
 
-  /* keep it readable on tiny phones */
-  @media (max-width: 420px){
-    :root{ --uiScale: 0.70; }
+  /* Mobile tuning: keep it big but safe */
+  @media (max-width: 480px){
+    :root{ --uiScale: 0.98; }
   }
-  @media (max-height: 620px){
-    :root{ --uiScale: 0.68; }
+  @media (max-height: 650px){
+    :root{ --uiScale: 0.90; }
   }
 
   /* =========================
@@ -115,7 +119,7 @@
      ========================= */
   .envelope{
     position:relative;
-    width: 700px;
+    width: 780px;                 /* ✅ bigger than before */
     aspect-ratio: 16 / 10;
     border-radius: 22px;
     perspective: 1200px;
@@ -174,13 +178,13 @@
   }
 
   /* =========================
-     PAPER (all visible, no scroll)
+     PAPER (no scroll, all visible)
      ========================= */
   .paper{
     position:absolute;
     left: 7.5%;
     right: 7.5%;
-    bottom: 0.5%;
+    bottom: 0.6%;
     z-index: 6;
     opacity: 0;
     transform: translateY(52%) scale(0.985);
@@ -194,7 +198,6 @@
     position:relative;
     border-radius: 16px;
     border: 1px solid rgba(40,25,10,0.28);
-
     background:
       repeating-linear-gradient(0deg, rgba(90,70,40,0.05) 0 1px, transparent 1px 4px),
       repeating-linear-gradient(90deg, rgba(90,70,40,0.035) 0 1px, transparent 1px 5px),
@@ -213,8 +216,7 @@
 
     box-shadow: 0 26px 76px rgba(0,0,0,0.58);
     overflow: visible;
-
-    padding: 28px 28px 56px;
+    padding: 30px 30px 58px;
     box-sizing:border-box;
   }
 
@@ -253,8 +255,16 @@
     color: var(--ink);
     text-align:center;
     letter-spacing: 0.03em;
-    font-size: clamp(15px, 1.25vw, 19px);
+
+    /* bigger, but still safe on small screens */
+    font-size: clamp(16px, 1.25vw, 20px);
     line-height: 1.38;
+  }
+
+  /* If the screen is short, keep it fitting without scrolling */
+  @media (max-height: 700px){
+    .paper p{ font-size: clamp(14px, 1.1vw, 18px); line-height: 1.32; }
+    .paper-inner{ padding: 26px 26px 50px; }
   }
 
   .paper strong{
@@ -271,8 +281,8 @@
     left:50%;
     top:62%;
     transform: translate(-50%, -50%);
-    width: 86px;
-    height: 86px;
+    width: 94px;                  /* ✅ slightly bigger */
+    height: 94px;
     border-radius: 999px;
     border: none;
     padding:0;
@@ -302,7 +312,7 @@
     display:none;
   }
 
-  /* Show full note and keep it centered when open */
+  /* Open state */
   .envelope.open .env-flap{ transform: rotateX(180deg); }
   .envelope.open .paper{
     opacity: 1;
