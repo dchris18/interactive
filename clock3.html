@@ -6,36 +6,24 @@
   <title>Clock3</title>
 
   <style>
-    :root{
-      --bg: #fdfbd4;
+    body {
+      margin: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #fdfbd4;
+      overflow: hidden;
     }
 
-    *{ box-sizing:border-box; }
-
-    html, body{
-      width:100%;
-      height:100%;
-      margin:0;
-    }
-
-    body{
-      background: var(--bg);
-      overflow:hidden;
-      position:relative;
-    }
-
-    img{
-      position:absolute;
-      user-select:none;
-      -webkit-user-drag:none;
-      pointer-events:auto;
-
+    img {
+      position: absolute;
+      user-select: none;
+      pointer-events: auto;
       transition: width 2s ease, transform 150ms ease;
       will-change: left, top, width, transform;
     }
 
-    img:hover{
-      z-index:10;
+    img:hover {
+      z-index: 10;
       transform: scale(1.15);
     }
   </style>
@@ -43,117 +31,117 @@
 
 <body>
   <script>
+    // --- Image list (make sure these files exist next to this HTML) ---
     const imageSources = [
-      "clocko1.png",
-      "clocko2.png",
-      "clocko3.png",
-      "clocko4.png",
-      "clocko5.png",
-      "clocko6.png",
-      "clocko7.png",
-      "clocko8.png",
-      "clocko9.png",
-      "clocko10.png",
+    "clocko1.png",
+    "clocko2.png",
+    "clocko3.png",
+    "clocko4.png",
+    "clocko5.png",
+    "clocko6.png",
+    "clocko7.png",
+    "clocko8.png",
+    "clocko9.png",
+    "clocko10.png",
     ];
 
     const images = [];
-
     const screenW = () => window.innerWidth;
     const screenH = () => window.innerHeight;
 
-    // Smaller sizes (tweak these two numbers to taste)
-    const randSize = () => Math.random() * 70 + 40; // 40–110px
-
-    function clampToScreen(obj){
-      const size = obj.el.offsetWidth || 0;
+    function clampToScreen(obj) {
+      const size = obj.el.offsetWidth;
       obj.x = Math.max(0, Math.min(obj.x, screenW() - size));
       obj.y = Math.max(0, Math.min(obj.y, screenH() - size));
     }
 
-    function makeImage(src){
+    // Create images
+    imageSources.forEach((src) => {
       const img = document.createElement("img");
       img.src = src;
 
-      const size = randSize();
+      const size = Math.random() * 150 + 80; // 80–230px
       img.style.width = size + "px";
 
       const obj = {
         el: img,
-        x: Math.random() * Math.max(1, (screenW() - size)),
-        y: Math.random() * Math.max(1, (screenH() - size)),
-        vx: (Math.random() - 0.5) * 0.9,
+        x: Math.random() * (screenW() - size),
+        y: Math.random() * (screenH() - size),
+        vx: (Math.random() - 0.5) * 0.9, // a bit faster for nicer bounces
         vy: (Math.random() - 0.5) * 0.9,
       };
 
       img.style.left = obj.x + "px";
-      img.style.top  = obj.y + "px";
+      img.style.top = obj.y + "px";
 
       images.push(obj);
       document.body.appendChild(img);
-    }
+    });
 
-    imageSources.forEach(makeImage);
-
-    function animate(){
+    // --- Animation + collisions ---
+    function animate() {
       // Move + wall bounce
-      for(const obj of images){
+      images.forEach((obj) => {
         const size = obj.el.offsetWidth;
 
         obj.x += obj.vx;
         obj.y += obj.vy;
 
-        if(obj.x <= 0){
+        if (obj.x <= 0) {
           obj.x = 0;
           obj.vx *= -1;
-        }else if(obj.x + size >= screenW()){
+        } else if (obj.x + size >= screenW()) {
           obj.x = screenW() - size;
           obj.vx *= -1;
         }
 
-        if(obj.y <= 0){
+        if (obj.y <= 0) {
           obj.y = 0;
           obj.vy *= -1;
-        }else if(obj.y + size >= screenH()){
+        } else if (obj.y + size >= screenH()) {
           obj.y = screenH() - size;
           obj.vy *= -1;
         }
-      }
+      });
 
       // Image-image collisions (treat as circles)
-      for(let i=0;i<images.length;i++){
-        for(let j=i+1;j<images.length;j++){
+      for (let i = 0; i < images.length; i++) {
+        for (let j = i + 1; j < images.length; j++) {
           const a = images[i];
           const b = images[j];
 
           const sizeA = a.el.offsetWidth;
           const sizeB = b.el.offsetWidth;
 
-          const ax = a.x + sizeA/2;
-          const ay = a.y + sizeA/2;
-          const bx = b.x + sizeB/2;
-          const by = b.y + sizeB/2;
+          const ax = a.x + sizeA / 2;
+          const ay = a.y + sizeA / 2;
+          const bx = b.x + sizeB / 2;
+          const by = b.y + sizeB / 2;
 
           const dx = ax - bx;
           const dy = ay - by;
 
-          const dist = Math.sqrt(dx*dx + dy*dy) || 0.0001;
-          const minDist = sizeA/2 + sizeB/2;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+          const minDist = sizeA / 2 + sizeB / 2;
 
-          if(dist < minDist){
-            // Push apart to prevent overlap/sticking
+          if (dist < minDist) {
+            // Push them apart so they don't overlap/stick
             const overlap = minDist - dist;
             const nx = dx / dist;
             const ny = dy / dist;
 
-            a.x += nx * (overlap/2);
-            a.y += ny * (overlap/2);
-            b.x -= nx * (overlap/2);
-            b.y -= ny * (overlap/2);
+            a.x += nx * (overlap / 2);
+            a.y += ny * (overlap / 2);
+            b.x -= nx * (overlap / 2);
+            b.y -= ny * (overlap / 2);
 
             // Simple elastic bounce: swap velocities
-            const tvx = a.vx, tvy = a.vy;
-            a.vx = b.vx; a.vy = b.vy;
-            b.vx = tvx;  b.vy = tvy;
+            const tempVx = a.vx;
+            const tempVy = a.vy;
+            a.vx = b.vx;
+            a.vy = b.vy;
+            b.vx = tempVx;
+            b.vy = tempVy;
 
             clampToScreen(a);
             clampToScreen(b);
@@ -162,27 +150,29 @@
       }
 
       // Apply positions
-      for(const obj of images){
+      images.forEach((obj) => {
         obj.el.style.left = obj.x + "px";
-        obj.el.style.top  = obj.y + "px";
-      }
+        obj.el.style.top = obj.y + "px";
+      });
 
       requestAnimationFrame(animate);
     }
 
     animate();
 
-    // Random resize every few seconds (still small)
+    // Random resize every few seconds (and keep them inside the screen)
     setInterval(() => {
-      for(const obj of images){
-        obj.el.style.width = randSize() + "px";
+      images.forEach((obj) => {
+        const newSize = Math.random() * 150 + 80;
+        obj.el.style.width = newSize + "px";
+        // after size changes, keep them on screen
         setTimeout(() => clampToScreen(obj), 0);
-      }
+      });
     }, 3000);
 
-    // Keep everything visible on window resize
+    // If the window resizes, keep everything visible
     window.addEventListener("resize", () => {
-      for(const obj of images) clampToScreen(obj);
+      images.forEach((obj) => clampToScreen(obj));
     });
   </script>
 </body>
