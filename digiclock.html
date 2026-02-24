@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -29,17 +29,18 @@
     --neoGlow1: rgba(120,255,190,0.35);
     --neoGlow2: rgba(120,255,190,0.22);
     --neoGlow3: rgba(120,255,190,0.12);
-
-    /* ---- Responsive scale controls ---- */
-    --baseW: 860; /* design width in px */
-    --scale: 1;
   }
 
   html, body{ height:100%; }
   body{
     margin:0;
-    overflow:hidden;
+    overflow-x:hidden;
+    overflow-y:hidden;
     font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+    /* mobile-safe full height */
+    min-height: 100dvh;
+
     background: radial-gradient(circle at 50% 30%, var(--bg1), var(--bg0));
     transition: background 900ms ease;
   }
@@ -136,29 +137,20 @@
   }
 
   .wrap{
-    height:100%;
+    min-height: 100dvh;
     display:flex;
     align-items:center;
     justify-content:center;
-    padding: clamp(10px, 2vw, 18px);
+    padding: clamp(12px, 3vw, 22px);
     box-sizing:border-box;
     position:relative;
     z-index:3;
   }
 
-  /* ---------- SCALE LAYER (makes whole UI media scalable) ---------- */
-  .scale-stage{
-    width: min(90vw, calc(var(--baseW) * 1px));
-    transform: scale(var(--scale));
-    transform-origin: center;
-    will-change: transform;
-  }
-
-  /* --------- SMALLER OVERALL CASE --------- */
   .clock-case{
-    width: 100%;
-    border-radius: clamp(20px, 2.6vw, 30px);
-    padding: clamp(7px, 1vw, 9px);
+    width: min(860px, 94vw);
+    border-radius: clamp(18px, 2.6vw, 30px);
+    padding: clamp(8px, 1.2vw, 10px);
     background: linear-gradient(180deg, var(--bezelA), var(--bezelB));
     box-shadow:
       0 40px 120px rgba(0,0,0,0.55),
@@ -168,19 +160,16 @@
   }
 
   .clock-screen{
-    border-radius: clamp(16px, 2.2vw, 24px);
+    border-radius: clamp(14px, 2.2vw, 24px);
     background: linear-gradient(180deg, var(--screen0), var(--screen1));
     border: 1px solid var(--screenStroke);
     position:relative;
     overflow:hidden;
-    padding: clamp(14px, 2.2vw, 22px);
+    padding: clamp(14px, 2.4vw, 22px);
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.08),
       inset 0 -30px 90px rgba(0,0,0,0.55);
-    min-height: clamp(190px, 24vw, 290px);
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    min-height: clamp(210px, 34vw, 320px);
   }
 
   .clock-screen::before{
@@ -201,22 +190,28 @@
     pointer-events:none;
   }
 
+  /* ---- true responsive layout (no transform scaling) ---- */
   .digits{
     position:relative;
     z-index:4;
-    display:flex;
+    display:grid;
+    grid-template-columns: 1fr auto 1fr auto;
     align-items:center;
-    justify-content:center;
-    gap: clamp(12px, 2vw, 24px);
+    gap: clamp(10px, 2vw, 18px);
     width: 100%;
     max-width: 820px;
-    padding-bottom: clamp(62px, 7vw, 78px);
+
+    /* space for buttons below */
+    padding-bottom: clamp(82px, 11vw, 110px);
+    margin: 0 auto;
   }
 
   .digit-input{
     box-sizing:border-box;
-    width: clamp(150px, 24vw, 260px);
-    height: clamp(100px, 14vw, 170px);
+    width: 100%;
+    max-width: 280px;
+    height: clamp(92px, 14vw, 170px);
+
     border-radius: clamp(12px, 1.7vw, 16px);
     border: 1px solid rgba(255,255,255,0.12);
     background:
@@ -230,7 +225,10 @@
     color: var(--neo);
     font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     font-weight: 900;
-    font-size: clamp(56px, 7.8vw, 110px);
+
+    /* better on mobile than huge vw-only sizing */
+    font-size: clamp(52px, 9vw, 110px);
+
     line-height: 1;
     text-align:center;
     outline:none;
@@ -264,7 +262,7 @@
   .colon{
     font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     font-weight: 900;
-    font-size: clamp(56px, 7.8vw, 110px);
+    font-size: clamp(52px, 9vw, 110px);
     line-height: 1;
     opacity: 0.96;
     transform: translateY(-0.06em);
@@ -279,12 +277,11 @@
     display:flex;
     flex-direction:column;
     gap: clamp(8px, 1.2vw, 10px);
-    margin-left: clamp(2px, 0.6vw, 5px);
-    transform: translateY(0.06em);
+    justify-self:end;
   }
 
   .pill{
-    width: clamp(80px, 9vw, 105px);
+    width: clamp(78px, 12vw, 110px);
     border-radius: 14px;
     border: 1px solid rgba(255,255,255,0.12);
     background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.35));
@@ -314,35 +311,33 @@
   .controls{
     position:absolute;
     left: 50%;
-    bottom: clamp(10px, 1.7vw, 16px);
+    bottom: clamp(10px, 2.4vw, 18px);
     transform: translateX(-50%);
     display:flex;
     justify-content:center;
-    gap: clamp(10px, 1.6vw, 12px);
+    gap: clamp(10px, 1.8vw, 12px);
     flex-wrap: wrap;
     z-index:5;
-    width: calc(100% - clamp(24px, 4.6vw, 44px));
+    width: calc(100% - clamp(24px, 5vw, 48px));
     max-width: 820px;
-    pointer-events:auto;
   }
 
   .btn{
     border: 1px solid rgba(255,255,255,0.14);
     background: rgba(255,255,255,0.05);
-    padding: clamp(10px, 1.4vw, 12px) clamp(14px, 1.8vw, 16px);
+    padding: clamp(10px, 1.6vw, 12px) clamp(14px, 2vw, 16px);
     border-radius: 16px;
     cursor:pointer;
     transition: transform 160ms ease, background 200ms ease, border-color 200ms ease;
     font-weight: 900;
     letter-spacing: 0.06em;
-    min-width: clamp(130px, 20vw, 220px);
+    min-width: clamp(140px, 34vw, 240px);
     text-align:center;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
 
     color: var(--neo);
     font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    text-transform: none;
     text-shadow:
       0 0 10px var(--neoGlow1),
       0 0 22px var(--neoGlow2),
@@ -374,18 +369,39 @@
     body{ transition:none; }
   }
 
-  /* Small screens: stack nicer */
+  /* ---- mobile fixes ---- */
   @media (max-width: 640px){
-    .digits{
-      flex-wrap: wrap;
-      row-gap: clamp(10px, 2vw, 16px);
-      padding-bottom: clamp(78px, 11vw, 102px);
+    .clock-screen{
+      min-height: clamp(260px, 66vw, 360px);
     }
+
+    /* stack into 2 rows: HH:MM on top, AM/PM below */
+    .digits{
+      grid-template-columns: 1fr auto 1fr;
+      grid-template-areas:
+        "hh colon mm"
+        "ampm ampm ampm";
+      row-gap: 12px;
+      padding-bottom: clamp(110px, 18vw, 140px);
+    }
+    #hh{ grid-area: hh; }
+    .colon{ grid-area: colon; }
+    #mm{ grid-area: mm; }
+
     .ampm{
+      grid-area: ampm;
       flex-direction: row;
-      gap: 10px;
-      margin-left: 0;
-      transform: none;
+      justify-content: center;
+    }
+
+    .digit-input{
+      height: clamp(88px, 20vw, 140px);
+      font-size: clamp(46px, 13vw, 86px);
+      max-width: none;
+    }
+
+    .btn{
+      min-width: 42vw;
     }
   }
 </style>
@@ -396,24 +412,22 @@
   <div id="nightFx" aria-hidden="true"></div>
 
   <div class="wrap">
-    <div class="scale-stage" id="scaleStage">
-      <div class="clock-case">
-        <div class="clock-screen" aria-label="Digital alarm clock face">
-          <div class="digits" aria-label="Digital clock inputs">
-            <input id="hh" class="digit-input" inputmode="numeric" maxlength="2" placeholder="HH" aria-label="Hours" />
-            <div class="colon" aria-hidden="true">:</div>
-            <input id="mm" class="digit-input" inputmode="numeric" maxlength="2" placeholder="MM" aria-label="Minutes" />
-            <div class="ampm" aria-label="AM PM selector">
-              <button class="pill active" id="amBtn" type="button">AM</button>
-              <button class="pill" id="pmBtn" type="button">PM</button>
-            </div>
+    <div class="clock-case">
+      <div class="clock-screen" aria-label="Digital alarm clock face">
+        <div class="digits" aria-label="Digital clock inputs">
+          <input id="hh" class="digit-input" inputmode="numeric" maxlength="2" placeholder="HH" aria-label="Hours" />
+          <div class="colon" aria-hidden="true">:</div>
+          <input id="mm" class="digit-input" inputmode="numeric" maxlength="2" placeholder="MM" aria-label="Minutes" />
+          <div class="ampm" aria-label="AM PM selector">
+            <button class="pill active" id="amBtn" type="button">AM</button>
+            <button class="pill" id="pmBtn" type="button">PM</button>
           </div>
+        </div>
 
-          <div class="controls" aria-label="Clock controls">
-            <button class="btn" id="nowBtn" type="button">Use current time</button>
-            <button class="btn" id="randomBtn" type="button">Random time</button>
-            <button class="btn" id="clearBtn" type="button">Clear</button>
-          </div>
+        <div class="controls" aria-label="Clock controls">
+          <button class="btn" id="nowBtn" type="button">Use current time</button>
+          <button class="btn" id="randomBtn" type="button">Random time</button>
+          <button class="btn" id="clearBtn" type="button">Clear</button>
         </div>
       </div>
     </div>
@@ -429,18 +443,6 @@
   const randomBtn = document.getElementById('randomBtn');
   const clearBtn = document.getElementById('clearBtn');
   const nightFx = document.getElementById('nightFx');
-
-  // ---- responsive scaling (whole UI) ----
-  const stage = document.getElementById('scaleStage');
-  const BASE_W = 860; // match --baseW
-  function setScale(){
-    // available width inside wrap padding
-    const vw = Math.min(window.innerWidth, document.documentElement.clientWidth);
-    const scale = Math.max(0.78, Math.min(1, (vw * 0.90) / BASE_W));
-    document.documentElement.style.setProperty('--scale', scale.toFixed(3));
-  }
-  setScale();
-  window.addEventListener('resize', setScale, { passive:true });
 
   let isPM = false;
 
