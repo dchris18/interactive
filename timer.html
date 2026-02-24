@@ -1,95 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Real-Time Digital Clock</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real-Time Digital Clock</title>
 
-  <style>
-    /* --- Custom font (update path + filename to match your project!) --- */
-    @font-face {
-      font-family: "DrukCondSuper";
-      src: url("fonts/DrukCond-Super.otf") format("opentype");
-      font-weight: 400;
-      font-style: normal;
-      font-display: swap;
-    }
+<style>
+/* --- FONT: match your folder name EXACTLY (Fonts) --- */
+@font-face {
+    font-family: "DrukCondSuper";
+    src: url("Fonts/DrukCond-Super.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
 
-    :root {
-      /* One knob to scale the whole UI responsively */
-      --ui: clamp(14px, 1.6vw, 22px);
-      --clock-size: clamp(52px, 9vw, 120px);
-    }
+body {
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-family: "DrukCondSuper", Arial, sans-serif;
+    transition: background 1s linear;
+    color:white;
 
-    * { box-sizing: border-box; }
+    /* small addition for better scaling on small screens */
+    padding: clamp(10px, 3vw, 28px);
+    box-sizing: border-box;
+}
 
-    body {
-      margin: 0;
-      min-height: 100svh;              /* fixes mobile address-bar jump */
-      display: grid;
-      place-items: center;
-      font-family: "DrukCondSuper", Arial, sans-serif;
-      transition: background 1s linear;
-      color: white;
-      overflow: hidden;
-      padding: calc(var(--ui) * 1.25);
-    }
+.clock {
+    font-size: clamp(48px, 10vw, 100px);
+    background: rgba(0,0,0,0.3);
 
-    .clock {
-      font-size: var(--clock-size);
-      line-height: 1;
-      letter-spacing: 0.03em;
+    /* responsive padding keeps it looking right on phones */
+    padding: clamp(14px, 2.5vw, 20px) clamp(22px, 4vw, 40px);
 
-      background: rgba(0, 0, 0, 0.3);
-      padding: clamp(14px, 2.2vw, 26px) clamp(18px, 3vw, 46px);
-      border-radius: clamp(14px, 2vw, 24px);
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-      text-align: center;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    text-align:center;
 
-      /* prevent layout issues on very small screens */
-      max-width: 100%;
-      word-break: keep-all;
-      white-space: nowrap;
-    }
-
-    /* Extra-small phones */
-    @media (max-width: 360px) {
-      :root { --clock-size: clamp(44px, 12vw, 92px); }
-      .clock { padding: 14px 18px; }
-    }
-  </style>
+    /* prevents overflow on narrow screens */
+    max-width: 100%;
+    white-space: nowrap;
+}
+</style>
 </head>
-
 <body>
-  <div class="clock" id="clock">00:00:00</div>
 
-  <script>
-    const clock = document.getElementById("clock");
+<div class="clock" id="clock">00:00:00</div>
 
-    function updateClock() {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, "0");
-      const minutes = String(now.getMinutes()).padStart(2, "0");
-      const seconds = String(now.getSeconds()).padStart(2, "0");
-      clock.textContent = `${hours}:${minutes}:${seconds}`;
+<script>
+const clock = document.getElementById("clock");
 
-      const timeFraction =
-        now.getHours() / 24 +
-        now.getMinutes() / (24 * 60) +
-        now.getSeconds() / (24 * 3600);
+function updateClock() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2,'0');
+    const minutes = now.getMinutes().toString().padStart(2,'0');
+    const seconds = now.getSeconds().toString().padStart(2,'0');
 
-      let lightness;
-      if (timeFraction <= 0.5) {
-        lightness = 0 + (80 - 0) * (timeFraction / 0.5);
-      } else {
-        lightness = 80 - (80 * (timeFraction - 0.5)) / 0.5;
-      }
+    clock.textContent = `${hours}:${minutes}:${seconds}`;
 
-      document.body.style.background = `hsl(210, 100%, ${lightness}%)`;
+    const timeFraction = now.getHours()/24 + now.getMinutes()/(24*60) + now.getSeconds()/(24*3600);
+
+    let lightness;
+    if (timeFraction <= 0.5) {
+        lightness = 0 + (80-0)*(timeFraction/0.5);
+    } else {
+        lightness = 80 - (80*(timeFraction-0.5)/0.5);
     }
 
-    updateClock();
-    setInterval(updateClock, 1000);
-  </script>
+    document.body.style.background = `hsl(210, 100%, ${lightness}%)`;
+}
+
+updateClock();
+setInterval(updateClock, 1000);
+</script>
+
 </body>
 </html>
