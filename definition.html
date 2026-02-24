@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TIME</title>
+
+  <link rel="preload" href="Fonts/DrukText-Heavy.otf" as="font" type="font/otf" crossorigin>
+
+  <style>
+    @font-face{
+      font-family: "DrukTextHeavy";
+      src: url("Fonts/DrukText-Heavy.otf") format("opentype");
+      font-display: swap;
+    }
+
+    :root{
+      --ink: #4b3022;
+      --ink-strong:#2e1c13;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+
+    body{
+      margin:0;
+      display:grid;
+      place-items:center;
+      padding: clamp(18px, 4vw, 56px);
+      overflow:hidden;
+      font-family: "DrukTextHeavy", Georgia, serif;
+
+      background:
+        repeating-linear-gradient(0deg, rgba(90,70,40,0.05) 0 1px, transparent 1px 4px),
+        repeating-linear-gradient(90deg, rgba(90,70,40,0.035) 0 1px, transparent 1px 5px),
+
+        radial-gradient(circle at 22% 30%, rgba(40,25,10,0.10) 0 2px, transparent 3px),
+        radial-gradient(circle at 65% 42%, rgba(40,25,10,0.08) 0 1.5px, transparent 2.8px),
+        radial-gradient(circle at 75% 68%, rgba(40,25,10,0.10) 0 2px, transparent 3.2px),
+        radial-gradient(circle at 38% 78%, rgba(40,25,10,0.08) 0 1.6px, transparent 2.8px),
+
+        radial-gradient(circle at 16% 18%, rgba(120,90,40,0.16), transparent 54%),
+        radial-gradient(circle at 78% 22%, rgba(120,90,40,0.13), transparent 58%),
+        radial-gradient(circle at 62% 86%, rgba(120,90,40,0.14), transparent 60%),
+        radial-gradient(circle at 50% 55%, rgba(120,90,40,0.08), transparent 55%),
+
+        linear-gradient(180deg, #f2e6cb, #e4d1ab);
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 50% 50%, transparent 56%, rgba(75,55,25,0.22) 100%),
+        radial-gradient(circle at 10% 12%, rgba(90,70,35,0.15), transparent 36%),
+        radial-gradient(circle at 92% 18%, rgba(90,70,35,0.13), transparent 40%),
+        radial-gradient(circle at 15% 90%, rgba(90,70,35,0.12), transparent 40%);
+      mix-blend-mode: multiply;
+      opacity: 0.72;
+    }
+
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(0deg, transparent 18%, rgba(40,30,15,0.06) 18.3%, transparent 18.6%),
+        linear-gradient(0deg, transparent 62%, rgba(40,30,15,0.055) 62.3%, transparent 62.6%),
+        linear-gradient(90deg, transparent 48%, rgba(40,30,15,0.045) 48.2%, transparent 48.4%);
+      opacity: 0.6;
+      mix-blend-mode: multiply;
+    }
+
+    .content{
+      position:relative;
+      z-index:1;
+      width: min(1000px, 94vw);
+      text-align:center;
+      padding: clamp(24px, 4vw, 60px);
+    }
+
+    h1{
+      margin: 0 0 clamp(12px, 2vw, 22px);
+      color: var(--ink-strong);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 900;
+      font-size: clamp(110px, 16vw, 200px); /* bigger */
+
+      /* VERY subtle shadow */
+      text-shadow:
+        0 2px 3px rgba(0,0,0,0.18),
+        0 1px 0 rgba(255,255,255,0.15);
+    }
+
+    p{
+      margin: 0 auto;
+      max-width: 64ch;
+      color: var(--ink);
+      font-size: clamp(26px, 3.6vw, 42px); /* bigger */
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+
+      text-shadow:
+        0 1.5px 2px rgba(0,0,0,0.15),
+        0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .rule{
+      width: min(600px, 78%);
+      height: 2px;
+      margin: clamp(12px, 2vw, 18px) auto clamp(16px, 2.5vw, 26px);
+      background: rgba(46, 28, 19, 0.22);
+      border-radius: 999px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="content">
+    <h1>TIME</h1>
+    <div class="rule"></div>
+    <p>
+      the indefinite continued progress of existence and events in the past, present, and future regarded as a whole.
+    </p>
+  </main>
+</body>
+</html>

@@ -6,27 +6,40 @@
 <title>Time Mood Clock</title>
 
 <style>
+  @font-face{
+    font-family: "DrukTextHeavy";
+    src: url("fonts/DrukText-Heavy.otf") format("opentype");
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
   :root{
     --bg0:#050818;
     --bg1:#0b1634;
-    --glow: rgba(255,255,255,0.12);
-    --ink: rgba(255,255,255,0.92);
-    --muted: rgba(255,255,255,0.70);
-    --panel: rgba(255,255,255,0.06);
-    --stroke: rgba(255,255,255,0.18);
+
+    --bezelA: rgba(255,255,255,0.18);
+    --bezelB: rgba(255,255,255,0.06);
+    --screen0: rgba(0,0,0,0.92);
+    --screen1: rgba(0,0,0,0.78);
+    --screenStroke: rgba(255,255,255,0.10);
+
+    --neo: rgba(135,255,190,0.95);
+    --neoDim: rgba(135,255,190,0.40);
+    --neoGlow1: rgba(120,255,190,0.35);
+    --neoGlow2: rgba(120,255,190,0.22);
+    --neoGlow3: rgba(120,255,190,0.12);
   }
 
-  html, body { height: 100%; }
+  html, body{ height:100%; }
   body{
     margin:0;
     overflow:hidden;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    color: var(--ink);
+    font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     background: radial-gradient(circle at 50% 30%, var(--bg1), var(--bg0));
     transition: background 900ms ease;
   }
 
-  /* subtle grain */
   body::after{
     content:"";
     position:fixed;
@@ -40,13 +53,13 @@
     mix-blend-mode: soft-light;
   }
 
-  /* floating bokeh */
   .bokeh{
     position:fixed;
     inset:0;
     pointer-events:none;
     opacity:0.55;
     filter: blur(0.2px);
+    z-index:1;
   }
   .bokeh::before{
     content:"";
@@ -60,9 +73,62 @@
     animation: drift 18s ease-in-out infinite;
   }
   @keyframes drift{
-    0%   { transform: translate3d(0,0,0) scale(1); }
-    50%  { transform: translate3d(2%, -2%, 0) scale(1.02); }
-    100% { transform: translate3d(0,0,0) scale(1); }
+    0%{ transform: translate3d(0,0,0) scale(1); }
+    50%{ transform: translate3d(2%, -2%, 0) scale(1.02); }
+    100%{ transform: translate3d(0,0,0) scale(1); }
+  }
+
+  #nightFx{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:2;
+    opacity:0;
+    transition: opacity 900ms ease;
+  }
+  body[data-theme="night"] #nightFx{ opacity:1; }
+
+  .star{
+    position:absolute;
+    left: calc(var(--x) * 1vw);
+    top:  calc(var(--y) * 1vh);
+    width: var(--s);
+    height: var(--s);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.9);
+    opacity: var(--o);
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.14));
+    animation: twinkle var(--d) ease-in-out var(--del) infinite;
+  }
+  @keyframes twinkle{
+    0%,100%{ transform: scale(1); opacity: var(--o); }
+    50%{ transform: scale(1.6); opacity: calc(var(--o) + 0.28); }
+  }
+
+  .comet{
+    position:absolute;
+    left: calc(var(--sx) * 1vw);
+    top:  calc(var(--sy) * 1vh);
+    width: var(--len);
+    height: var(--th);
+    border-radius: 999px;
+    transform: rotate(var(--ang));
+    transform-origin: left center;
+    background: linear-gradient(90deg,
+      rgba(255,255,255,0.00),
+      rgba(255,255,255,0.35),
+      rgba(255,255,255,0.95)
+    );
+    filter:
+      drop-shadow(0 0 10px rgba(255,255,255,0.18))
+      drop-shadow(0 0 22px rgba(180,220,255,0.12));
+    opacity: 0;
+    animation: shoot var(--cd) ease-out forwards;
+  }
+  @keyframes shoot{
+    0%{ opacity:0; transform: rotate(var(--ang)) translateX(0); }
+    10%{ opacity:0.95; }
+    100%{ opacity:0; transform: rotate(var(--ang)) translateX(var(--dist)); }
   }
 
   .wrap{
@@ -70,156 +136,212 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    padding: 20px;
+    padding: clamp(12px, 2.5vw, 22px);
     box-sizing:border-box;
+    position:relative;
+    z-index:3;
   }
 
-  .clock-card{
-    width: min(880px, 92vw);
-    border-radius: 28px;
-    border: 1px solid var(--stroke);
-    background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
-    box-shadow: 0 30px 90px rgba(0,0,0,0.45);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    padding: clamp(18px, 3vw, 30px);
+  .clock-case{
+    width: min(980px, 94vw);
+    border-radius: clamp(22px, 3vw, 34px);
+    padding: clamp(8px, 1.2vw, 10px);
+    background: linear-gradient(180deg, var(--bezelA), var(--bezelB));
+    box-shadow:
+      0 40px 120px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.20);
+    border: 1px solid rgba(255,255,255,0.10);
     position:relative;
   }
 
-  .toprow{
+  .clock-screen{
+    border-radius: clamp(18px, 2.6vw, 28px);
+    background: linear-gradient(180deg, var(--screen0), var(--screen1));
+    border: 1px solid var(--screenStroke);
+    position:relative;
+    overflow:hidden;
+    padding: clamp(16px, 2.6vw, 26px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -30px 90px rgba(0,0,0,0.55);
+    min-height: clamp(210px, 26vw, 330px);
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    gap:16px;
-    margin-bottom: 14px;
+    justify-content:center;
   }
 
-  .label{
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--muted);
-    opacity:0.9;
+  .clock-screen::before{
+    content:"";
+    position:absolute;
+    inset:-40% -30%;
+    background: linear-gradient(115deg, transparent 36%, rgba(255,255,255,0.10) 48%, transparent 62%);
+    transform: translateX(-20%) rotate(6deg);
+    opacity: 0.55;
+    pointer-events:none;
   }
-
-  .status{
-    font-size: 12px;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.78);
-    padding: 8px 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.18);
-    background: rgba(0,0,0,0.18);
-    white-space:nowrap;
+  .clock-screen::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background: radial-gradient(circle at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%);
+    opacity: 0.35;
+    pointer-events:none;
   }
 
   .digits{
+    position:relative;
+    z-index:4;
     display:flex;
-    align-items:baseline;
+    align-items:center;
     justify-content:center;
-    gap: clamp(10px, 2vw, 16px);
-    padding: clamp(10px, 2vw, 18px) 0;
+    gap: clamp(16px, 2.6vw, 30px);
+    width: 100%;
+    max-width: 900px;
+    padding-bottom: clamp(70px, 8vw, 86px);
   }
 
   .digit-input{
-    width: clamp(86px, 14vw, 140px);
-    height: clamp(94px, 14vw, 150px);
-    border-radius: 22px;
-    border: 1px solid rgba(255,255,255,0.20);
+    box-sizing:border-box;
+    width: clamp(170px, 26vw, 300px);
+    height: clamp(120px, 16vw, 200px);
+    border-radius: clamp(14px, 2vw, 18px);
+    border: 1px solid rgba(255,255,255,0.12);
     background:
-      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.10), transparent 45%),
-      linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.30));
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,0.05), transparent 45%),
+      linear-gradient(180deg, rgba(0,0,0,0.38), rgba(0,0,0,0.76));
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.10),
-      0 18px 44px rgba(0,0,0,0.35);
-    color: rgba(255,255,255,0.92);
-    font-weight: 700;
-    font-size: clamp(44px, 7vw, 72px);
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -18px 40px rgba(0,0,0,0.35),
+      0 18px 44px rgba(0,0,0,0.22);
+
+    color: var(--neo);
+    font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    font-weight: 900;
+    font-size: clamp(64px, 8.8vw, 128px);
+    line-height: 1;
     text-align:center;
     outline:none;
-    caret-color: rgba(255,255,255,0.85);
+    caret-color: var(--neo);
     letter-spacing: 0.06em;
+    padding: 0 0.20em;
+    font-variant-numeric: tabular-nums;
+
+    text-shadow:
+      0 0 10px var(--neoGlow1),
+      0 0 22px var(--neoGlow2),
+      0 0 44px var(--neoGlow3);
   }
+
   .digit-input::placeholder{
-    color: rgba(255,255,255,0.35);
+    color: var(--neoDim);
+    text-shadow:
+      0 0 10px rgba(120,255,190,0.12),
+      0 0 26px rgba(120,255,190,0.08);
   }
+
   .digit-input:focus{
-    border-color: rgba(255,255,255,0.45);
+    border-color: rgba(120,255,190,0.40);
     box-shadow:
-      0 0 0 4px rgba(255,255,255,0.12),
-      inset 0 1px 0 rgba(255,255,255,0.12),
-      0 18px 44px rgba(0,0,0,0.35);
+      0 0 0 4px rgba(120,255,190,0.10),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -18px 40px rgba(0,0,0,0.35),
+      0 18px 44px rgba(0,0,0,0.22);
   }
 
   .colon{
-    font-weight: 700;
-    font-size: clamp(44px, 7vw, 72px);
-    opacity: 0.85;
-    transform: translateY(-4px);
-    text-shadow: 0 10px 40px rgba(0,0,0,0.45);
+    font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    font-weight: 900;
+    font-size: clamp(64px, 8.8vw, 128px);
+    line-height: 1;
+    opacity: 0.96;
+    transform: translateY(-0.06em);
+    color: var(--neo);
+    text-shadow:
+      0 0 12px var(--neoGlow1),
+      0 0 26px var(--neoGlow2),
+      0 0 52px var(--neoGlow3);
   }
 
   .ampm{
     display:flex;
     flex-direction:column;
-    gap:10px;
-    margin-left: 6px;
-    transform: translateY(4px);
+    gap: clamp(10px, 1.6vw, 12px);
+    margin-left: clamp(2px, 0.7vw, 6px);
+    transform: translateY(0.06em);
   }
 
   .pill{
-    width: 86px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.20);
-    background: rgba(0,0,0,0.22);
-    color: rgba(255,255,255,0.82);
-    padding: 10px 12px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    width: clamp(96px, 10vw, 122px);
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.35));
+    padding: clamp(10px, 1.2vw, 12px) clamp(12px, 1.4vw, 14px);
     cursor:pointer;
-    transition: transform 160ms ease, background 200ms ease, border-color 200ms ease;
+    transition: transform 160ms ease, background 200ms ease, border-color 200ms ease, filter 200ms ease;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+
+    color: var(--neo);
+    font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-shadow:
+      0 0 10px var(--neoGlow1),
+      0 0 22px var(--neoGlow2),
+      0 0 44px var(--neoGlow3);
   }
+
   .pill:active{ transform: scale(0.98); }
   .pill.active{
-    background: rgba(255,255,255,0.16);
-    border-color: rgba(255,255,255,0.42);
-    color: rgba(255,255,255,0.94);
+    border-color: rgba(120,255,190,0.42);
+    background: linear-gradient(180deg, rgba(120,255,190,0.10), rgba(0,0,0,0.35));
+    filter: drop-shadow(0 0 10px rgba(120,255,190,0.12));
   }
 
-  .footer{
-    margin-top: 10px;
+  .controls{
+    position:absolute;
+    left: 50%;
+    bottom: clamp(12px, 2vw, 18px);
+    transform: translateX(-50%);
     display:flex;
-    gap:12px;
-    flex-wrap:wrap;
-    justify-content:space-between;
-    align-items:center;
-    color: rgba(255,255,255,0.72);
-    font-size: 13px;
-  }
-
-  .hint{
-    opacity: 0.9;
+    justify-content:center;
+    gap: clamp(10px, 1.8vw, 14px);
+    flex-wrap: wrap;
+    z-index:5;
+    width: calc(100% - clamp(28px, 5vw, 48px));
+    max-width: 900px;
+    pointer-events:auto;
   }
 
   .btn{
-    border: 1px solid rgba(255,255,255,0.18);
-    background: rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.86);
-    padding: 10px 12px;
-    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.05);
+    padding: clamp(12px, 1.6vw, 14px) clamp(16px, 2vw, 20px);
+    border-radius: 16px;
     cursor:pointer;
-    transition: transform 160ms ease, background 200ms ease;
-    font-weight: 650;
+    transition: transform 160ms ease, background 200ms ease, border-color 200ms ease;
+    font-weight: 900;
     letter-spacing: 0.06em;
+    min-width: clamp(160px, 22vw, 260px);
+    text-align:center;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+
+    color: var(--neo);
+    font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    text-transform: none;
+    text-shadow:
+      0 0 10px var(--neoGlow1),
+      0 0 22px var(--neoGlow2),
+      0 0 44px var(--neoGlow3);
   }
-  .btn:hover{ background: rgba(255,255,255,0.10); }
+
+  .btn:hover{
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(120,255,190,0.28);
+  }
   .btn:active{ transform: scale(0.98); }
 
-  /* =========================
-     BACKGROUND THEMES
-  ========================= */
   body[data-theme="night"]{
     background: radial-gradient(circle at 50% 25%, #0c1b46 0%, #050818 55%, #02030a 100%);
   }
@@ -233,70 +355,51 @@
     background: radial-gradient(circle at 50% 28%, #ffcf6a 0%, #ff5a7a 35%, #20124a 100%);
   }
 
-  /* star overlay for night-ish */
-  .stars{
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    opacity: 0;
-    transition: opacity 900ms ease;
-  }
-  .stars::before{
-    content:"";
-    position:absolute;
-    inset:0;
-    background:
-      radial-gradient(circle at 10% 15%, rgba(255,255,255,0.9) 0 1px, transparent 2px),
-      radial-gradient(circle at 22% 38%, rgba(255,255,255,0.7) 0 1px, transparent 2px),
-      radial-gradient(circle at 44% 22%, rgba(255,255,255,0.85) 0 1px, transparent 2px),
-      radial-gradient(circle at 66% 18%, rgba(255,255,255,0.75) 0 1px, transparent 2px),
-      radial-gradient(circle at 78% 44%, rgba(255,255,255,0.8) 0 1px, transparent 2px),
-      radial-gradient(circle at 88% 26%, rgba(255,255,255,0.7) 0 1px, transparent 2px),
-      radial-gradient(circle at 58% 52%, rgba(255,255,255,0.65) 0 1px, transparent 2px),
-      radial-gradient(circle at 34% 58%, rgba(255,255,255,0.7) 0 1px, transparent 2px);
-    opacity: 0.55;
-  }
-  body[data-theme="night"] .stars{ opacity: 0.55; }
-
-  /* reduced motion */
   @media (prefers-reduced-motion: reduce){
     .bokeh::before{ animation:none; }
+    #nightFx{ display:none; }
     body{ transition:none; }
-    .stars{ transition:none; }
+  }
+
+  @media (max-width: 640px){
+    .digits{
+      flex-wrap: wrap;
+      row-gap: clamp(10px, 2vw, 16px);
+      padding-bottom: clamp(86px, 12vw, 110px);
+    }
+    .ampm{
+      flex-direction: row;
+      gap: 10px;
+      margin-left: 0;
+      transform: none;
+    }
   }
 </style>
 </head>
 
 <body data-theme="night">
   <div class="bokeh"></div>
-  <div class="stars"></div>
+  <div id="nightFx" aria-hidden="true"></div>
 
   <div class="wrap">
-    <div class="clock-card">
-      <div class="toprow">
-        <div class="label">Enter a time</div>
-        <div class="status" id="status">Theme: Night</div>
-      </div>
-
-      <div class="digits" aria-label="Digital clock inputs">
-        <input id="hh" class="digit-input" inputmode="numeric" maxlength="2" placeholder="HH" aria-label="Hours" />
-        <div class="colon" aria-hidden="true">:</div>
-        <input id="mm" class="digit-input" inputmode="numeric" maxlength="2" placeholder="MM" aria-label="Minutes" />
-        <div class="ampm" aria-label="AM PM selector">
-          <button class="pill active" id="amBtn" type="button">AM</button>
-          <button class="pill" id="pmBtn" type="button">PM</button>
+    <div class="clock-case">
+      <div class="clock-screen" aria-label="Digital alarm clock face">
+        <div class="digits" aria-label="Digital clock inputs">
+          <input id="hh" class="digit-input" inputmode="numeric" maxlength="2" placeholder="HH" aria-label="Hours" />
+          <div class="colon" aria-hidden="true">:</div>
+          <input id="mm" class="digit-input" inputmode="numeric" maxlength="2" placeholder="MM" aria-label="Minutes" />
+          <div class="ampm" aria-label="AM PM selector">
+            <button class="pill active" id="amBtn" type="button">AM</button>
+            <button class="pill" id="pmBtn" type="button">PM</button>
+          </div>
         </div>
-      </div>
 
-      <div class="footer">
-        <div class="hint" id="hint">Tip: Try 06:30 AM, 12:00 PM, 07:45 PM, 11:10 PM</div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="controls" aria-label="Clock controls">
           <button class="btn" id="nowBtn" type="button">Use current time</button>
           <button class="btn" id="randomBtn" type="button">Random time</button>
           <button class="btn" id="clearBtn" type="button">Clear</button>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -306,21 +409,15 @@
   const mm = document.getElementById('mm');
   const amBtn = document.getElementById('amBtn');
   const pmBtn = document.getElementById('pmBtn');
-  const status = document.getElementById('status');
-
   const nowBtn = document.getElementById('nowBtn');
   const randomBtn = document.getElementById('randomBtn');
   const clearBtn = document.getElementById('clearBtn');
+  const nightFx = document.getElementById('nightFx');
 
   let isPM = false;
 
-  function clampNum(n, min, max){
-    return Math.max(min, Math.min(max, n));
-  }
-
-  function sanitize2(el){
-    el.value = el.value.replace(/[^\d]/g, '').slice(0,2);
-  }
+  function clampNum(n, min, max){ return Math.max(min, Math.min(max, n)); }
+  function sanitize2(el){ el.value = el.value.replace(/[^\d]/g, '').slice(0,2); }
 
   function setAMPM(pm){
     isPM = pm;
@@ -332,7 +429,6 @@
   amBtn.addEventListener('click', () => setAMPM(false));
   pmBtn.addEventListener('click', () => setAMPM(true));
 
-  // Auto-advance to minutes after 2 digits
   hh.addEventListener('input', () => {
     sanitize2(hh);
     if (hh.value.length === 2) mm.focus();
@@ -343,13 +439,13 @@
     updateThemeFromInputs();
   });
 
-  // Allow arrow up/down to change numbers
   function stepField(el, step, min, max){
     let v = parseInt(el.value || '0', 10);
     v = clampNum(v + step, min, max);
     el.value = String(v).padStart(2,'0');
     updateThemeFromInputs();
   }
+
   hh.addEventListener('keydown', (e) => {
     if(e.key === 'ArrowUp'){ e.preventDefault(); stepField(hh, 1, 1, 12); }
     if(e.key === 'ArrowDown'){ e.preventDefault(); stepField(hh,-1, 1, 12); }
@@ -362,47 +458,34 @@
   function parseTime(){
     const Hraw = parseInt(hh.value, 10);
     const Mraw = parseInt(mm.value, 10);
-
     if (Number.isNaN(Hraw) || Number.isNaN(Mraw)) return null;
 
     const H = clampNum(Hraw, 1, 12);
     const M = clampNum(Mraw, 0, 59);
 
-    // Convert to 24h for theme logic
     let hour24 = H % 12;
     if (isPM) hour24 += 12;
     return { H, M, hour24 };
   }
 
   function themeForHour(hour24){
-    // Feel free to tweak these ranges:
-    // 0-4 night, 5-7 dawn, 8-16 day, 17-19 sunset, 20-23 night
     if (hour24 >= 5 && hour24 <= 7) return 'dawn';
     if (hour24 >= 8 && hour24 <= 16) return 'day';
     if (hour24 >= 17 && hour24 <= 19) return 'sunset';
     return 'night';
   }
 
-  function themeLabel(theme){
-    return theme.charAt(0).toUpperCase() + theme.slice(1);
-  }
-
   function updateThemeFromInputs(){
     const t = parseTime();
     if(!t){
-      // default
       document.body.dataset.theme = 'night';
-      status.textContent = 'Theme: Night';
       return;
     }
 
-    // normalize display padding (optional: only if both are filled)
     if (hh.value.length === 2) hh.value = String(t.H).padStart(2,'0');
     if (mm.value.length === 2) mm.value = String(t.M).padStart(2,'0');
 
-    const theme = themeForHour(t.hour24);
-    document.body.dataset.theme = theme;
-    status.textContent = `Theme: ${themeLabel(theme)}`;
+    document.body.dataset.theme = themeForHour(t.hour24);
   }
 
   nowBtn.addEventListener('click', () => {
@@ -424,6 +507,7 @@
   randomBtn.addEventListener('click', () => {
     const hour24 = Math.floor(Math.random()*24);
     const minute = Math.floor(Math.random()*60);
+
     const pm = hour24 >= 12;
     setAMPM(pm);
 
@@ -440,11 +524,89 @@
     mm.value = '';
     setAMPM(false);
     document.body.dataset.theme = 'night';
-    status.textContent = 'Theme: Night';
     hh.focus();
   });
 
-  // Init
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function prefersReducedMotion(){
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  function buildStars(){
+    if (!nightFx || prefersReducedMotion()) return;
+    nightFx.innerHTML = '';
+    const count = 150;
+    for (let i = 0; i < count; i++){
+      const star = document.createElement('div');
+      star.className = 'star';
+
+      const size = rand(1, 2.8);
+      const op = rand(0.16, 0.78);
+      const dur = rand(1.4, 5.0);
+      const del = rand(0, 4.2);
+
+      star.style.setProperty('--x', rand(0, 100).toFixed(2));
+      star.style.setProperty('--y', rand(0, 100).toFixed(2));
+      star.style.setProperty('--s', `${size.toFixed(2)}px`);
+      star.style.setProperty('--o', op.toFixed(2));
+      star.style.setProperty('--d', `${dur.toFixed(2)}s`);
+      star.style.setProperty('--del', `${del.toFixed(2)}s`);
+
+      nightFx.appendChild(star);
+    }
+  }
+
+  function spawnComet(){
+    if (!nightFx || prefersReducedMotion()) return;
+    if (document.body.dataset.theme !== 'night') return;
+
+    const comet = document.createElement('div');
+    comet.className = 'comet';
+
+    const startX = rand(-15, 35);
+    const startY = rand(0, 55);
+    const angle = rand(-10, 18);
+    const dist = rand(120, 180);
+    const duration = rand(0.9, 1.5);
+    const length = rand(140, 240);
+    const thickness = rand(2, 4);
+
+    comet.style.setProperty('--sx', startX.toFixed(2));
+    comet.style.setProperty('--sy', startY.toFixed(2));
+    comet.style.setProperty('--ang', `${angle.toFixed(2)}deg`);
+    comet.style.setProperty('--dist', `${dist.toFixed(0)}vw`);
+    comet.style.setProperty('--cd', `${duration.toFixed(2)}s`);
+    comet.style.setProperty('--len', `${length.toFixed(0)}px`);
+    comet.style.setProperty('--th', `${thickness.toFixed(0)}px`);
+
+    nightFx.appendChild(comet);
+    comet.addEventListener('animationend', () => comet.remove());
+  }
+
+  let cometTimer = null;
+  function scheduleComets(){
+    if (prefersReducedMotion()) return;
+    if (cometTimer) clearTimeout(cometTimer);
+
+    const loop = () => {
+      const next = rand(3000, 9000);
+      cometTimer = setTimeout(() => {
+        if (document.body.dataset.theme === 'night' && Math.random() < 0.7) spawnComet();
+        loop();
+      }, next);
+    };
+    loop();
+  }
+
+  buildStars();
+  scheduleComets();
+
+  let resizeT = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(buildStars, 180);
+  });
+
   updateThemeFromInputs();
 })();
 </script>

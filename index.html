@@ -187,6 +187,7 @@
       user-select:none;
       text-decoration:none;
       font-family:"DrukTextHeavy", Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
     @keyframes pulse{
@@ -376,23 +377,33 @@
 
     const numbers=[];
     const numberAngles=[];
+
+    const links = {
+      1: "timer.html",
+      2: "clockpage.html",
+      3: "poem.html",
+      4: "watch.html",
+      5: "quotes.html",
+      6: "digiclock.html",
+      7: "mountain.html",
+      8: "sundial.html",
+      9: "hourglass.html",
+      10: "definition.html",
+      11: "stopwatch.html",
+      12: "stars.html"
+    };
+
     for(let n=1;n<=12;n++){
       const a=(n-3)*(Math.PI/6);
       numberAngles.push(a);
 
-      let num;
-      if(n===1){
-        num=document.createElement("a");
-        num.href="./timer.html";
-        num.setAttribute("aria-label","Go to timer");
-        num.setAttribute("title","Go to timer");
-      }else{
-        num=document.createElement("div");
-        num.addEventListener("click",()=>{ alert("You clicked hour " + n); });
-      }
-
+      const num=document.createElement("a");
+      num.href="./" + links[n];
+      num.setAttribute("aria-label","Go to " + links[n]);
+      num.setAttribute("title","Go to " + links[n]);
       num.classList.add("clock-number");
       num.textContent=n;
+
       clock.appendChild(num);
       numbers.push(num);
     }

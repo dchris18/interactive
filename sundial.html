@@ -3,23 +3,33 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Real-Time Sundial</title>
+<title>Interactive Sundial</title>
 
 <style>
-  :root{
-    --skyTop:#f7e7bf;
-    --skyMid:#f0c77c;
-    --skyBot:#c5663f;
-
-    --stone1:#f2e6cf;
-    --stone2:#d9c8a6;
-    --stone3:#b79f7c;
-
-    --ink:#1b120d;
-    --shadow: rgba(0,0,0,0.35);
+  @font-face{
+    font-family: "DrukCondSuper";
+    src: url("fonts/DrukCond-Super.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
   }
 
-  html, body{ height:100%; }
+  :root{
+    --bg1:#0e1318;
+    --bg2:#131a22;
+
+    --stoneA:#0f141a;
+    --stoneB:#1a232d;
+    --stoneC:#263241;
+
+    --ink: rgba(255,255,255,0.84);
+    --shadow: rgba(0,0,0,0.58);
+
+    --rimPad: 7%;
+    --facePad: 15%;
+  }
+
+  html, body { height:100%; }
   body{
     margin:0;
     overflow:hidden;
@@ -27,101 +37,141 @@
     align-items:center;
     justify-content:center;
     background:
-      radial-gradient(circle at 50% 18%, rgba(255,255,255,0.26), transparent 55%),
-      linear-gradient(180deg, var(--skyTop) 0%, var(--skyMid) 46%, var(--skyBot) 100%);
-    font-family: ui-serif, Georgia, "Times New Roman", serif;
+      radial-gradient(circle at 40% 20%, rgba(255,255,255,0.08), transparent 55%),
+      radial-gradient(circle at 70% 80%, rgba(0,0,0,0.55), transparent 55%),
+      linear-gradient(180deg, var(--bg1), var(--bg2));
+    font-family: "DrukCondSuper", ui-serif, Georgia, "Times New Roman", serif;
     color: var(--ink);
   }
 
-  /* soft vignette + grain */
-  body::before{
-    content:"";
+  .bgLight{
     position:fixed;
-    inset:-18%;
+    inset:-20%;
     pointer-events:none;
-    background: radial-gradient(circle at 50% 50%, transparent 58%, rgba(0,0,0,0.22) 100%);
-    opacity: 0.7;
-  }
-  body::after{
-    content:"";
-    position:fixed;
-    inset:-40%;
-    pointer-events:none;
-    opacity:0.07;
+    opacity:0.95;
+    filter: blur(0.2px);
+    mix-blend-mode: screen;
+    z-index: 0;
     background:
-      repeating-linear-gradient(0deg, rgba(255,255,255,0.10) 0 1px, transparent 1px 3px),
-      repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 4px);
-    transform: rotate(8deg);
-    mix-blend-mode: soft-light;
-  }
-
-  .title{
-    position:fixed;
-    top:18px;
-    left:50%;
-    transform:translateX(-50%);
-    font-weight:800;
-    letter-spacing:0.10em;
-    text-transform:uppercase;
-    font-size:clamp(12px, 1.7vw, 14px);
-    opacity:0.78;
-    user-select:none;
+      radial-gradient(circle at 50% 50%,
+        rgba(255,240,190,0.22) 0%,
+        rgba(255,210,120,0.14) 18%,
+        rgba(255,210,120,0.06) 34%,
+        rgba(255,210,120,0.00) 55%);
+    transform: translate3d(0,0,0);
   }
 
   .wrap{
-    width:min(980px, 96vw);
-    height:min(900px, 92vh);
+    width:min(920px, 96vw);
+    height:min(880px, 92vh);
     display:flex;
     align-items:center;
     justify-content:center;
+    position:relative;
+    z-index:1;
+    padding-bottom: 170px; /* more room for bigger readout */
+    box-sizing: border-box;
   }
 
-  /* ===== Traditional-ish sundial ===== */
   .sundial{
-    width:min(680px, 92vw);
+    width:min(640px, 86vw);
     aspect-ratio: 1 / 1;
     position:relative;
+    touch-action:none;
   }
 
-  /* base disc */
   .plate{
     position:absolute;
-    inset: 0;
-    border-radius: 999px;
+    inset:0;
+    border-radius:999px;
     background:
-      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.42), transparent 55%),
-      radial-gradient(circle at 70% 78%, rgba(0,0,0,0.16), transparent 60%),
-      linear-gradient(180deg, var(--stone1), var(--stone2) 60%, var(--stone3));
-    border: 1px solid rgba(255,255,255,0.45);
+      radial-gradient(circle at 30% 28%, rgba(255,255,255,0.10), transparent 56%),
+      radial-gradient(circle at 70% 78%, rgba(0,0,0,0.55), transparent 60%),
+      linear-gradient(180deg, #0b0f14, #121a22 55%, #0a0e12);
     box-shadow:
-      inset 0 2px 0 rgba(255,255,255,0.40),
-      inset 0 -26px 40px rgba(0,0,0,0.16),
-      0 26px 80px rgba(0,0,0,0.28);
+      0 28px 90px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.10),
+      inset 0 -26px 44px rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.10);
   }
 
-  /* a simple carved ring */
-  .ring{
+  .rim{
+    position:absolute;
+    inset: var(--rimPad);
+    border-radius:999px;
+    background:
+      radial-gradient(circle at 50% 50%, transparent 64%, rgba(0,0,0,0.25) 88%, rgba(0,0,0,0.45) 100%),
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.10), transparent 48%),
+      linear-gradient(180deg, #101822, #1b2632 55%, #0f151e);
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,0.08),
+      inset 0 -18px 30px rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.10);
+    overflow:hidden;
+  }
+
+  .rim::before{
+    content:"";
     position:absolute;
     inset: 6%;
-    border-radius: 999px;
-    border: 2px solid rgba(0,0,0,0.14);
-    box-shadow:
-      inset 0 0 0 1px rgba(255,255,255,0.18),
-      inset 0 18px 30px rgba(255,255,255,0.08),
-      inset 0 -20px 32px rgba(0,0,0,0.12);
-    opacity: 0.9;
-    pointer-events:none;
+    border-radius:999px;
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.55);
+    opacity:0.9;
   }
 
-  /* hour lines: show only "daylight" arc (6 to 6) */
-  .hours{
+  .rim::after{
+    content:"";
     position:absolute;
-    inset: 14%;
-    border-radius: 999px;
+    inset: 0;
+    background:
+      repeating-conic-gradient(
+        from -90deg,
+        rgba(255,255,255,0.10) 0deg 0.35deg,
+        transparent 0.35deg 5deg
+      );
+    opacity:0.28;
+    mix-blend-mode: overlay;
     pointer-events:none;
-    opacity: 0.9;
   }
 
+  .face{
+    position:absolute;
+    inset: var(--facePad);
+    border-radius:999px;
+    background:
+      radial-gradient(circle at 50% 45%, rgba(255,255,255,0.06), transparent 62%),
+      radial-gradient(circle at 70% 78%, rgba(0,0,0,0.58), transparent 65%),
+      linear-gradient(180deg, var(--stoneA), var(--stoneB) 55%, var(--stoneC));
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,0.08),
+      inset 0 -22px 34px rgba(0,0,0,0.55);
+    overflow:hidden;
+  }
+
+  .rays{
+    position:absolute;
+    inset:0;
+    border-radius:999px;
+    background:
+      repeating-conic-gradient(
+        from -90deg,
+        rgba(255,255,255,0.11) 0deg 0.55deg,
+        transparent 0.55deg 9deg
+      );
+    opacity:0.26;
+    mix-blend-mode: overlay;
+    pointer-events:none;
+  }
+
+  .hourlines{
+    position:absolute;
+    inset:0;
+    border-radius:999px;
+    pointer-events:none;
+    opacity:0.95;
+  }
   .hour-line{
     position:absolute;
     left:50%;
@@ -129,267 +179,422 @@
     width: 48%;
     height: 2px;
     transform-origin: 0% 50%;
-    background: rgba(0,0,0,0.22);
+    background: rgba(255,255,255,0.10);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.38);
   }
-  .hour-line.major{ height: 3px; background: rgba(0,0,0,0.30); }
-  .hour-line::after{
-    content:"";
-    position:absolute;
-    right:-4px;
-    top:50%;
-    width: 8px;
-    height: 8px;
-    transform: translateY(-50%);
-    border-radius: 999px;
-    background: rgba(0,0,0,0.22);
-    opacity: 0.25;
-  }
+  .hour-line.major{ height: 3px; background: rgba(255,255,255,0.14); }
 
-  /* numbers around the bottom half (traditional look) */
-  .nums{
+  .romans{
     position:absolute;
-    inset: 18%;
-    border-radius: 999px;
+    inset:0;
     pointer-events:none;
-    color: rgba(20,12,9,0.70);
-    font-weight: 800;
-    text-shadow: 0 2px 0 rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.78);
+    text-shadow: 0 2px 0 rgba(0,0,0,0.55);
+    font-family: "DrukCondSuper", ui-serif, Georgia, "Times New Roman", serif;
+    font-weight: normal;
+    letter-spacing:0.10em;
   }
-  .nums span{
+  .romans span{
     position:absolute;
     transform: translate(-50%,-50%);
-    font-size: clamp(12px, 2.1vw, 18px);
-    letter-spacing: 0.02em;
+    font-size: clamp(12px, 2.2vw, 20px);
+    opacity:0.92;
   }
 
-  /* gnomon: simple triangular wedge */
+  .compass{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width: 20%;
+    aspect-ratio:1/1;
+    transform: translate(-50%,-50%);
+    border-radius:999px;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.10), transparent 55%),
+      radial-gradient(circle at 70% 80%, rgba(0,0,0,0.60), transparent 55%),
+      linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.28));
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,0.08),
+      0 18px 50px rgba(0,0,0,0.45);
+    pointer-events:none;
+    overflow:hidden;
+    opacity:0.95;
+  }
+  .compass::before{
+    content:"";
+    position:absolute;
+    inset:12%;
+    border-radius:999px;
+    background:
+      conic-gradient(
+        from -90deg,
+        rgba(255,255,255,0.10),
+        rgba(0,0,0,0.18),
+        rgba(255,255,255,0.10)
+      );
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.55);
+    opacity:0.85;
+  }
+  .compass::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:50%;
+    width: 70%;
+    height: 70%;
+    transform: translate(-50%,-50%) rotate(45deg);
+    clip-path: polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%);
+    background: rgba(255,255,255,0.10);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.45) inset;
+    opacity:0.65;
+  }
+
   .gnomon{
     position:absolute;
     left:50%;
     top:50%;
-    width: 54%;
-    height: 54%;
-    transform: translate(-50%,-64%) rotate(0deg);
-    transform-origin: 50% 80%;
-    cursor: grab;
-    filter: drop-shadow(0 16px 24px rgba(0,0,0,0.18));
-    z-index: 4;
+    width: 62%;
+    height: 62%;
+    transform: translate(-50%,-70%) rotate(-10deg);
+    transform-origin: 50% 82%;
+    z-index: 5;
+    filter: drop-shadow(0 18px 28px rgba(0,0,0,0.45));
+    pointer-events:none;
   }
-  .gnomon:active{ cursor: grabbing; }
   .gnomon::before{
     content:"";
     position:absolute;
     inset:0;
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    clip-path: polygon(52% 0%, 44% 100%, 64% 100%);
     background:
-      linear-gradient(90deg, rgba(255,255,255,0.25), rgba(0,0,0,0.10)),
-      linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.16));
-    border: 1px solid rgba(0,0,0,0.12);
-    border-radius: 10px;
+      linear-gradient(90deg, rgba(255,255,255,0.18), rgba(0,0,0,0.12)),
+      linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.24));
+    border: 1px solid rgba(255,255,255,0.14);
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.22),
-      inset 0 -18px 22px rgba(0,0,0,0.12);
+      inset 0 2px 0 rgba(255,255,255,0.10),
+      inset 0 -18px 26px rgba(0,0,0,0.35);
+    border-radius: 12px;
   }
 
-  /* gnomon base cap */
   .cap{
     position:absolute;
     left:50%;
     top:50%;
-    width: 36px;
-    height: 36px;
+    width: 46px;
+    height: 46px;
     transform: translate(-50%,-50%);
-    border-radius: 999px;
+    border-radius:999px;
     background:
-      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.30), rgba(0,0,0,0.08));
-    border: 1px solid rgba(0,0,0,0.12);
-    box-shadow: 0 14px 34px rgba(0,0,0,0.16);
-    z-index: 5;
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.16), rgba(0,0,0,0.35));
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 18px 50px rgba(0,0,0,0.50);
+    z-index: 6;
     pointer-events:none;
   }
 
-  /* shadow: simple wedge */
   .shadow{
     position:absolute;
     left:50%;
     top:50%;
-    width: 72%;
-    height: 72%;
-    transform: translate(-50%,-58%) rotate(0deg);
-    transform-origin: 50% 78%;
+    width: 88%;
+    height: 88%;
+    transform: translate(-50%,-62%) rotate(0deg);
+    transform-origin: 50% 80%;
+    z-index: 3;
     pointer-events:none;
-    z-index: 2;
     opacity: 0.9;
   }
   .shadow::before{
     content:"";
     position:absolute;
     inset:0;
-    clip-path: polygon(50% 0%, 46% 100%, 54% 100%);
-    background: linear-gradient(180deg, rgba(0,0,0,0.34), rgba(0,0,0,0.00));
-    filter: blur(0.6px);
+    clip-path: polygon(50% 0%, 47% 100%, 53% 100%);
+    background: linear-gradient(180deg, var(--shadow), rgba(0,0,0,0.00));
+    filter: blur(0.8px);
   }
 
-  /* small time label (optional but minimal) */
-  .time{
+  .sunHandle{
     position:absolute;
     left:50%;
-    bottom: -12px;
-    transform: translate(-50%, 100%);
-    font-size: clamp(12px, 1.8vw, 14px);
-    font-weight: 800;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
-    opacity: 0.72;
-    user-select:none;
-    background: rgba(255,255,255,0.16);
+    top: var(--rimPad);
+    width: 34px;
+    height: 34px;
+    transform: translate(-50%, -50%);
+    border-radius:999px;
+    z-index: 10;
+    cursor: grab;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.65), rgba(255,255,255,0.10)),
+      radial-gradient(circle at 60% 70%, rgba(255,220,120,0.60), rgba(255,220,120,0.00));
     border: 1px solid rgba(255,255,255,0.22);
-    padding: 10px 14px;
-    border-radius: 999px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    box-shadow:
+      0 16px 36px rgba(0,0,0,0.55),
+      inset 0 2px 0 rgba(255,255,255,0.18);
+    touch-action:none;
   }
+  .sunHandle:active{ cursor: grabbing; }
+
+  .sunBeam{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width: 58%;
+    height: 58%;
+    transform: translate(-50%,-62%) rotate(0deg);
+    transform-origin: 50% 80%;
+    z-index: 2;
+    pointer-events:none;
+    opacity:0.45;
+    mix-blend-mode: screen;
+  }
+  .sunBeam::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    clip-path: polygon(50% 0%, 48.5% 100%, 51.5% 100%);
+    background: linear-gradient(180deg, rgba(255,240,190,0.22), rgba(255,240,190,0.00));
+    filter: blur(0.8px);
+  }
+
+.readout{
+    position:fixed;
+    left:50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    padding:18px 22px;
+    border-radius:999px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 22px 70px rgba(0,0,0,0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-family: "DrukCondSuper", ui-serif, Georgia, "Times New Roman", serif;
+    font-weight: normal;
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    font-size: clamp(28px, 6.5vw, 64px);
+    line-height: 1;
+    color: #cfd8e3; /* lighter version of background */
+    user-select:none;
+    white-space:nowrap;
+    z-index: 20;
+}
 
   @media (prefers-reduced-motion: reduce){
     .shadow::before{ filter:none; }
+    .sunBeam::before{ filter:none; }
   }
 </style>
 </head>
 
 <body>
-  <div class="title">Real-Time Sundial</div>
+  <div class="bgLight" id="bgLight" aria-hidden="true"></div>
 
   <div class="wrap">
-    <div class="sundial" id="dial" aria-label="Traditional sundial">
+    <div class="sundial" id="dial" aria-label="Interactive sundial (drag the sun to change the light direction)">
       <div class="plate"></div>
-      <div class="ring"></div>
+      <div class="rim">
+        <div class="face" id="face">
+          <div class="rays"></div>
+          <div class="hourlines" id="hourlines"></div>
 
-      <div class="shadow" id="shadow"></div>
+          <div class="sunBeam" id="sunBeam"></div>
+          <div class="shadow" id="shadow"></div>
 
-      <div class="hours" id="hours"></div>
+          <div class="gnomon"></div>
+          <div class="cap"></div>
+          <div class="compass"></div>
 
-      <!-- simple traditional numbers (daylight-ish arc) -->
-      <div class="nums" aria-hidden="true">
-        <span style="left:18%; top:70%;">7</span>
-        <span style="left:28%; top:82%;">8</span>
-        <span style="left:40%; top:90%;">9</span>
-        <span style="left:50%; top:93%;">10</span>
-        <span style="left:60%; top:90%;">11</span>
-        <span style="left:72%; top:82%;">12</span>
-        <span style="left:82%; top:70%;">1</span>
+          <div class="romans" id="romans" aria-hidden="true"></div>
+        </div>
       </div>
 
-      <div class="gnomon" id="gnomon" title="Drag to rotate (optional)"></div>
-      <div class="cap"></div>
-
-      <div class="time" id="timeText">—</div>
+      <div class="sunHandle" id="sunHandle" title="Drag to change the light"></div>
     </div>
   </div>
+
+  <div class="readout" id="readout">—</div>
 
 <script>
 (() => {
   const dial = document.getElementById('dial');
+  const face = document.getElementById('face');
   const shadow = document.getElementById('shadow');
-  const gnomon = document.getElementById('gnomon');
-  const timeText = document.getElementById('timeText');
-  const hours = document.getElementById('hours');
+  const sunHandle = document.getElementById('sunHandle');
+  const sunBeam = document.getElementById('sunBeam');
+  const romans = document.getElementById('romans');
+  const hourlines = document.getElementById('hourlines');
+  const readout = document.getElementById('readout');
+  const bgLight = document.getElementById('bgLight');
 
-  // Build simple hour lines from 6AM to 6PM (approx)
-  // Map 6 -> -90deg, 12 -> 0deg, 18 -> 90deg
-  function buildHourLines(){
-    hours.innerHTML = "";
-    for(let h=6; h<=18; h++){
-      const deg = (h - 12) * 15; // 6->-90, 12->0, 18->90
-      const div = document.createElement('div');
-      div.className = 'hour-line' + ((h%3===0) ? ' major' : '');
-      div.style.transform = `rotate(${deg}deg)`;
-      hours.appendChild(div);
-    }
-  }
-  buildHourLines();
+  const ROMAN = ["XII","I","II","III","IV","V","VI","VII","VIII","IX","X","XI"];
 
-  let dragging = false;
-  let dragAngle = 0;
-  let baseAngle = 0;
+  let draggingSun = false;
+  let lightDeg = 0;
 
-  function fmtTime(d){
-    const hh = d.getHours();
-    const mm = String(d.getMinutes()).padStart(2,'0');
-    const ss = String(d.getSeconds()).padStart(2,'0');
-    const ampm = hh >= 12 ? 'PM' : 'AM';
-    const h12 = ((hh + 11) % 12) + 1;
-    return `${h12}:${mm}:${ss} ${ampm}`;
+  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+  function rectCenter(el){
+    const r = el.getBoundingClientRect();
+    return { cx: r.left + r.width/2, cy: r.top + r.height/2, r };
   }
 
-  function localAngle(){
-    // simple mapping: 12:00 -> 0deg, 6:00 -> -90deg, 18:00 -> +90deg
-    const now = new Date();
-    const hrs = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600;
-
-    // clamp to daylight window for nicer look (still shows movement)
-    const clamped = Math.max(6, Math.min(18, hrs));
-    const deg = (clamped - 12) * 15; // 15deg per hour across 12h
-    return { now, deg };
-  }
-
-  function setAngle(deg){
-    // Shadow rotates; gnomon slightly offset for depth
-    shadow.style.transform = `translate(-50%,-58%) rotate(${deg}deg)`;
-    gnomon.style.transform = `translate(-50%,-64%) rotate(${deg - 10}deg)`;
-
-    // shadow opacity changes mildly (noon darker)
-    const noonFactor = 1 - Math.min(1, Math.abs(deg) / 90);
-    shadow.style.opacity = (0.55 + 0.40 * noonFactor).toFixed(3);
-  }
-
-  function tick(){
-    const { now, deg } = localAngle();
-    baseAngle = deg;
-
-    if(!dragging) setAngle(deg);
-
-    timeText.textContent = fmtTime(now);
-    requestAnimationFrame(tick);
-  }
-
-  function angleFromPointer(e){
-    const rect = dial.getBoundingClientRect();
-    const cx = rect.left + rect.width/2;
-    const cy = rect.top + rect.height/2;
-    const x = (e.touches ? e.touches[0].clientX : e.clientX) - cx;
-    const y = (e.touches ? e.touches[0].clientY : e.clientY) - cy;
-    // 0deg up
+  function pointerAngleDeg(e, center){
+    const p = e.touches ? e.touches[0] : e;
+    const x = p.clientX - center.cx;
+    const y = p.clientY - center.cy;
     return (Math.atan2(y, x) * 180/Math.PI) + 90;
   }
 
+  function normalize180(deg){
+    return ((deg + 180) % 360) - 180;
+  }
+
+  function degToTimeFullCircle(deg){
+    const d = normalize180(deg);
+    let hours24 = (d + 180) / 15;
+    hours24 = (hours24 % 24 + 24) % 24;
+
+    let hh = Math.floor(hours24);
+    let mm = Math.round((hours24 - hh) * 60);
+
+    if(mm === 60){ mm = 0; hh = (hh + 1) % 24; }
+
+    const ampm = hh >= 12 ? "PM" : "AM";
+    const h12 = ((hh + 11) % 12) + 1;
+    const mm2 = String(mm).padStart(2, "0");
+    return `${h12}:${mm2} ${ampm}`;
+  }
+
+  function positionSunHandle(deg){
+    const { cx, cy, r } = rectCenter(dial);
+    const radius = (Math.min(r.width, r.height) / 2) * 0.94;
+
+    const rad = (deg - 90) * (Math.PI / 180);
+    const x = cx + radius * Math.cos(rad);
+    const y = cy + radius * Math.sin(rad);
+
+    const localX = x - r.left;
+    const localY = y - r.top;
+
+    sunHandle.style.left = `${localX}px`;
+    sunHandle.style.top  = `${localY}px`;
+  }
+
+  function updateBgLightFromSun(){
+    const dr = dial.getBoundingClientRect();
+    const sx = dr.left + parseFloat(sunHandle.style.left || (dr.width/2));
+    const sy = dr.top  + parseFloat(sunHandle.style.top  || (dr.height/2));
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const px = clamp((sx / vw) * 100, 0, 100);
+    const py = clamp((sy / vh) * 100, 0, 100);
+
+    const norm = Math.abs(normalize180(lightDeg)) / 180;
+    const strength = 1 - norm;
+
+    const a1 = 0.18 + 0.12 * strength;
+    const a2 = 0.10 + 0.08 * strength;
+    const a3 = 0.05 + 0.05 * strength;
+
+    bgLight.style.background =
+      `radial-gradient(circle at ${px}% ${py}%,
+        rgba(255,245,205,${a1}) 0%,
+        rgba(255,220,140,${a2}) 18%,
+        rgba(255,210,120,${a3}) 36%,
+        rgba(255,210,120,0.00) 58%)`;
+  }
+
+  function setLight(deg){
+    lightDeg = normalize180(deg);
+
+    const shadowDeg = lightDeg + 180;
+    shadow.style.transform = `translate(-50%,-62%) rotate(${shadowDeg}deg)`;
+    sunBeam.style.transform = `translate(-50%,-62%) rotate(${lightDeg}deg)`;
+
+    const centerFactor = 1 - Math.min(1, Math.abs(normalize180(lightDeg)) / 180);
+    shadow.style.opacity = (0.52 + 0.40 * centerFactor).toFixed(3);
+
+    positionSunHandle(lightDeg);
+    updateBgLightFromSun();
+
+    readout.textContent = degToTimeFullCircle(lightDeg);
+  }
+
+  function buildHourLines(){
+    hourlines.innerHTML = "";
+    for(let h=0; h<24; h++){
+      const deg = (h * 15) - 180;
+      const div = document.createElement('div');
+      div.className = 'hour-line' + ((h % 3 === 0) ? ' major' : '');
+      div.style.transform = `rotate(${deg}deg)`;
+      hourlines.appendChild(div);
+    }
+  }
+
+  function buildRomans(){
+    romans.innerHTML = "";
+    const { r } = rectCenter(face);
+    const size = Math.min(r.width, r.height);
+    const radius = (size / 2) * 0.93;
+
+    for(let i=0; i<12; i++){
+      const deg = i * 30;
+      const rad = (deg - 90) * (Math.PI / 180);
+      const x = (size/2) + radius * Math.cos(rad);
+      const y = (size/2) + radius * Math.sin(rad);
+
+      const s = document.createElement('span');
+      s.textContent = ROMAN[i];
+      s.style.left = `${(x / size) * 100}%`;
+      s.style.top  = `${(y / size) * 100}%`;
+      romans.appendChild(s);
+    }
+  }
+
+  function updateFromPointer(e){
+    const center = rectCenter(dial);
+    let a = pointerAngleDeg(e, center);
+    a = normalize180(a);
+    setLight(a);
+  }
+
   function onDown(e){
-    dragging = true;
-    dragAngle = angleFromPointer(e);
-    setAngle(dragAngle);
+    draggingSun = true;
+    updateFromPointer(e);
     e.preventDefault();
   }
   function onMove(e){
-    if(!dragging) return;
-    dragAngle = angleFromPointer(e);
-    setAngle(dragAngle);
+    if(!draggingSun) return;
+    updateFromPointer(e);
     e.preventDefault();
   }
   function onUp(){
-    if(!dragging) return;
-    dragging = false;
-    setAngle(baseAngle);
+    draggingSun = false;
   }
 
-  gnomon.addEventListener('mousedown', onDown);
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('mouseup', onUp);
+  sunHandle.addEventListener("mousedown", onDown);
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
 
-  gnomon.addEventListener('touchstart', onDown, {passive:false});
-  window.addEventListener('touchmove', onMove, {passive:false});
-  window.addEventListener('touchend', onUp);
+  sunHandle.addEventListener("touchstart", onDown, {passive:false});
+  window.addEventListener("touchmove", onMove, {passive:false});
+  window.addEventListener("touchend", onUp);
 
-  tick();
+  dial.addEventListener("mousedown", onDown);
+  dial.addEventListener("touchstart", onDown, {passive:false});
+
+  window.addEventListener("resize", () => {
+    buildRomans();
+    setLight(lightDeg);
+  });
+
+  buildHourLines();
+  buildRomans();
+  setLight(0);
 })();
 </script>
 </body>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mountain Quote</title>
+
+  <style>
+    @font-face {
+      font-family: "DrukText-Heavy";
+      src: url("fonts/DrukText-Heavy.otf") format("opentype");
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      background: url("mountain.jpg") center / cover no-repeat fixed;
+      overflow: hidden;
+    }
+
+    .scrim {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(0,0,0,0.2),
+        rgba(0,0,0,0.0) 60%
+      );
+      pointer-events: none;
+    }
+
+    .quote {
+      position: fixed;
+      top: clamp(20px, 3vw, 40px);
+      left: clamp(20px, 3vw, 40px);
+
+      font-family: "DrukText-Heavy", sans-serif;
+      color: #10241b;
+
+      /* MUCH BIGGER TEXT */
+      font-size: clamp(40px, 6vw, 100px);
+      line-height: 1.05;
+
+      max-width: 90vw;
+      white-space: pre-line; /* allows line breaks */
+    }
+  </style>
+</head>
+
+<body>
+  <div class="scrim"></div>
+  <div id="quote" class="quote"></div>
+
+  <script>
+    const text = "The time you enjoy wasting,\nis not wasted time.";
+    const el = document.getElementById("quote");
+
+    const totalDuration = 4800;
+    const delay = Math.max(15, Math.floor(totalDuration / text.length));
+
+    let i = 0;
+    function typeNext() {
+      el.textContent = text.slice(0, i + 1);
+      i++;
+      if (i < text.length) {
+        setTimeout(typeNext, delay);
+      }
+    }
+
+    typeNext();
+  </script>
+</body>
+</html>
