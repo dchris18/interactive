@@ -20,7 +20,7 @@ html, body { height:100%; }
 
 body{
   margin:0;
-  min-height:100svh;
+  min-height: 100svh;
 
   display:flex;
   justify-content:center;
@@ -33,12 +33,13 @@ body{
   background-repeat: no-repeat;
   background-size: cover;
   background-attachment: fixed;
-  background-position: center;
+
+  /* keep top-left ALWAYS visible */
+  background-position: left top;
 
   font-family: "DrukTextHeavy", system-ui, sans-serif;
 }
 
-/* vignette */
 body::before{
   content:"";
   position:fixed;
@@ -47,10 +48,9 @@ body::before{
   background: radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.75) 100%);
 }
 
-/* PERFECT CENTER WRAPPER */
 .wrap{
   width:100%;
-  max-width:900px;
+  max-width: 900px;
 
   display:flex;
   justify-content:center;
@@ -60,10 +60,9 @@ body::before{
   box-sizing:border-box;
 }
 
-/* TEXT CONTAINER */
 .quotes{
   width:100%;
-  max-width:720px;
+  max-width: 720px;
 
   display:flex;
   flex-direction:column;
@@ -73,20 +72,20 @@ body::before{
 
   text-align:center;
   padding: clamp(12px, 2vw, 20px);
-
   box-sizing:border-box;
+
   backdrop-filter: blur(2px);
 }
 
-/* TEXT */
 .q{
+  width:100%;
+  margin:0;
+
   font-size: clamp(14px, 1.3vw, 18px);
   line-height: 1.6;
   letter-spacing: 0.025em;
-  margin:0;
 
   text-align:center;
-  width:100%;
 
   transition: color 3.2s ease;
   text-shadow: 0 10px 34px rgba(0,0,0,0.78);
@@ -98,32 +97,40 @@ body::before{
   display:block;
   margin-top: 4px;
   letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 @media (max-width: 520px){
   body{
     background-attachment: scroll;
+    background-position: left top;
   }
 
   .q{
     font-size: clamp(12px, 3vw, 15px);
+    letter-spacing: 0.015em;
+  }
+
+  .quotes{
+    padding: clamp(10px, 3vw, 16px);
+    gap: clamp(10px, 1.8vh, 16px);
   }
 }
 </style>
 </head>
 
 <body>
-<div class="wrap">
-  <div class="quotes">
-    <p class="q">"Time is money."<span class="author">Benjamin Franklin</span></p>
-    <p class="q">"The two most powerful warriors are patience and time."<span class="author">Leo Tolstoy</span></p>
-    <p class="q">"Time flies over us, but leaves its shadow behind."<span class="author">Nathaniel Hawthorne</span></p>
-    <p class="q">"Better three hours too soon than a minute too late."<span class="author">William Shakespeare</span></p>
-    <p class="q">"You cannot kill time without injuring eternity."<span class="author">Henry David Thoreau</span></p>
-    <p class="q">"Time flies like an arrow, fruit flies like a banana."<span class="author">Groucho Marx</span></p>
-    <p class="q">"It is the time you have wasted for your rose that makes your rose so important."<span class="author">Antoine de Saint-Exupery</span></p>
+  <div class="wrap">
+    <div class="quotes" aria-label="Quotes about time">
+      <p class="q">"Time is money."<span class="author">Benjamin Franklin</span></p>
+      <p class="q">"The two most powerful warriors are patience and time."<span class="author">Leo Tolstoy</span></p>
+      <p class="q">"Time flies over us, but leaves its shadow behind."<span class="author">Nathaniel Hawthorne</span></p>
+      <p class="q">"Better three hours too soon than a minute too late."<span class="author">William Shakespeare</span></p>
+      <p class="q">"You cannot kill time without injuring eternity."<span class="author">Henry David Thoreau</span></p>
+      <p class="q">"Time flies like an arrow, fruit flies like a banana."<span class="author">Groucho Marx</span></p>
+      <p class="q">"It is the time you have wasted for your rose that makes your rose so important."<span class="author">Antoine de Saint-Exupery</span></p>
+    </div>
   </div>
-</div>
 
 <script>
 (function(){
