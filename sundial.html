@@ -6,10 +6,14 @@
 <title>Interactive Sundial</title>
 
 <style>
+  /* IMPORTANT:
+     Your folder in the screenshot is named "Fonts" (capital F).
+     GitHub Pages is case-sensitive, so use "Fonts/..." not "fonts/...".
+  */
   @font-face{
     font-family: "DrukCondSuper";
-    src: url("fonts/DrukCond-Super.otf") format("opentype");
-    font-weight: normal;
+    src: url("Fonts/DrukCond-Super.otf") format("opentype");
+    font-weight: 400;
     font-style: normal;
     font-display: swap;
   }
@@ -25,9 +29,15 @@
     --ink: rgba(255,255,255,0.84);
     --shadow: rgba(0,0,0,0.58);
 
-    --rimPad: 7%;
-    --facePad: 15%;
+    /* Slightly tighter */
+    --rimPad: 9%;
+    --facePad: 18%;
+
+    /* Global scale control (media-scaled below) */
+    --uiScale: 1;
   }
+
+  *{ box-sizing:border-box; }
 
   html, body { height:100%; }
   body{
@@ -61,23 +71,26 @@
     transform: translate3d(0,0,0);
   }
 
+  /* Wrapper is smaller + responsive */
   .wrap{
-    width:min(920px, 96vw);
-    height:min(880px, 92vh);
+    width: min(700px, 90vw);
+    height: min(650px, 85vh);
     display:flex;
     align-items:center;
     justify-content:center;
     position:relative;
     z-index:1;
-    padding-bottom: 170px; /* more room for bigger readout */
-    box-sizing: border-box;
+    padding-bottom: calc(100px * var(--uiScale));
   }
 
+  /* Dial is smaller and scales nicely */
   .sundial{
-    width:min(640px, 86vw);
+    width: min(420px, 70vw);
     aspect-ratio: 1 / 1;
     position:relative;
     touch-action:none;
+    transform: scale(var(--uiScale));
+    transform-origin: center;
   }
 
   .plate{
@@ -191,13 +204,13 @@
     color: rgba(255,255,255,0.78);
     text-shadow: 0 2px 0 rgba(0,0,0,0.55);
     font-family: "DrukCondSuper", ui-serif, Georgia, "Times New Roman", serif;
-    font-weight: normal;
+    font-weight: 400;
     letter-spacing:0.10em;
   }
   .romans span{
     position:absolute;
     transform: translate(-50%,-50%);
-    font-size: clamp(12px, 2.2vw, 20px);
+    font-size: clamp(10px, 1.6vw, 16px);
     opacity:0.92;
   }
 
@@ -205,7 +218,7 @@
     position:absolute;
     left:50%;
     top:50%;
-    width: 20%;
+    width: 16%;
     aspect-ratio:1/1;
     transform: translate(-50%,-50%);
     border-radius:999px;
@@ -251,12 +264,13 @@
     opacity:0.65;
   }
 
+  /* Scaled-down gnomon */
   .gnomon{
     position:absolute;
     left:50%;
     top:50%;
-    width: 62%;
-    height: 62%;
+    width: 52%;
+    height: 52%;
     transform: translate(-50%,-70%) rotate(-10deg);
     transform-origin: 50% 82%;
     z-index: 5;
@@ -278,12 +292,13 @@
     border-radius: 12px;
   }
 
+  /* Smaller center cap */
   .cap{
     position:absolute;
     left:50%;
     top:50%;
-    width: 46px;
-    height: 46px;
+    width: 28px;
+    height: 28px;
     transform: translate(-50%,-50%);
     border-radius:999px;
     background:
@@ -315,12 +330,13 @@
     filter: blur(0.8px);
   }
 
+  /* Smaller draggable sun */
   .sunHandle{
     position:absolute;
     left:50%;
     top: var(--rimPad);
-    width: 34px;
-    height: 34px;
+    width: 22px;
+    height: 22px;
     transform: translate(-50%, -50%);
     border-radius:999px;
     z-index: 10;
@@ -358,12 +374,13 @@
     filter: blur(0.8px);
   }
 
-.readout{
+  /* Smaller readout (was huge before) */
+  .readout{
     position:fixed;
     left:50%;
-    bottom: 18px;
+    bottom: 10px;
     transform: translateX(-50%);
-    padding:18px 22px;
+    padding:10px 14px;
     border-radius:999px;
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.10);
@@ -371,20 +388,41 @@
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     font-family: "DrukCondSuper", ui-serif, Georgia, "Times New Roman", serif;
-    font-weight: normal;
-    letter-spacing:0.24em;
+    font-weight: 400;
+    letter-spacing:0.18em;
     text-transform:uppercase;
-    font-size: clamp(28px, 6.5vw, 64px);
+    font-size: clamp(16px, 3.5vw, 28px);
     line-height: 1;
-    color: #cfd8e3; /* lighter version of background */
+    color: #cfd8e3;
     user-select:none;
     white-space:nowrap;
     z-index: 20;
-}
+  }
 
   @media (prefers-reduced-motion: reduce){
     .shadow::before{ filter:none; }
     .sunBeam::before{ filter:none; }
+  }
+
+  /* MEDIA SCALING: adjust global scale instead of rewriting 50 sizes */
+  @media (max-width: 980px){
+    :root{ --uiScale: 0.95; }
+  }
+  @media (max-width: 740px){
+    :root{ --uiScale: 0.88; }
+    .wrap{ padding-bottom: calc(88px * var(--uiScale)); }
+  }
+  @media (max-width: 520px){
+    :root{ --uiScale: 0.82; }
+    .wrap{
+      width: 94vw;
+      height: 82vh;
+      padding-bottom: calc(78px * var(--uiScale));
+    }
+    .readout{ letter-spacing: 0.14em; }
+  }
+  @media (max-width: 380px){
+    :root{ --uiScale: 0.76; }
   }
 </style>
 </head>
