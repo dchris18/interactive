@@ -1,9 +1,10 @@
 <!DOCTYPE html> 
 <html lang="en">
 <head>
+  <link rel="icon" type="image/png" href="hourglass.png">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Swinging Stopwatch Clock</title>
+<title>Swinging Stopwatch</title>
 
 <style>
   html, body{ height:100%; }
@@ -42,9 +43,7 @@
     mix-blend-mode: soft-light;
   }
 
-  /* =========================
-     Layout
-  ========================= */
+
   .wrap{
     width:min(1000px, 100vw);
     height:min(900px, 100vh);
@@ -71,23 +70,19 @@
     100%{ transform: translateZ(0) rotate(-13deg); }
   }
 
-  /* =========================
-     RESPONSIVE SCALE VAR
-     (controls whole stopwatch size)
-  ========================= */
+
   :root{
-    /* ✅ significantly smaller than before + responsive */
+
     --sw: clamp(180px, 30vw, 300px);
   }
 
-  /* string goes off the top of the screen */
   .hanger{
     position:absolute;
     left: 50%;
     top: -130vh;
     height: 160vh;
 
-    /* ✅ scale thickness with size */
+    
     width: clamp(2px, calc(var(--sw) * 0.012), 5px);
 
     transform: translateX(-50%);
@@ -105,7 +100,7 @@
   }
 
   .stopwatch{
-    /* ✅ the main size change */
+
     width: var(--sw);
 
     aspect-ratio: 1 / 1.20;
@@ -115,16 +110,14 @@
     align-items:center;
     justify-content:flex-start;
 
-    /* ✅ scale the top padding so the head stays proportional */
+
     padding-top: clamp(42px, calc(var(--sw) * 0.16), 72px);
 
     filter: drop-shadow(0 30px 86px rgba(0,0,0,0.52));
     transform: translateZ(0);
   }
 
-  /* =========================
-     Top assembly
-  ========================= */
+
   .head{
     width: 74%;
     height: clamp(80px, calc(var(--sw) * 0.30), 126px);
@@ -133,7 +126,7 @@
     align-items:flex-end;
     justify-content:center;
 
-    /* ✅ scales the overlap cleanly */
+
     margin-bottom: clamp(-18px, calc(var(--sw) * -0.05), -22px);
   }
 
@@ -219,9 +212,7 @@
   .pusher.left{ left: 8%; transform: rotate(-10deg); }
   .pusher.right{ right: 8%; transform: rotate(10deg); }
 
-  /* =========================
-     Body + dial
-  ========================= */
+
   .case{
     width: 100%;
     border-radius: 999px;
@@ -316,7 +307,7 @@
     will-change: transform;
   }
 
-  /* ✅ scale hand widths a bit on tiny screens */
+
   .hand.hour{ width: clamp(6px, calc(var(--sw) * 0.03), 10px); height: 28%; opacity: 0.92; }
   .hand.minute{ width: clamp(4px, calc(var(--sw) * 0.02), 7px); height: 38%; opacity: 0.90; }
   .hand.second{

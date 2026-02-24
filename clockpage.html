@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/png" href="hourglass.png">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Choose a Clock</title>
+<title>Time takes many forms</title>
 
-<!-- Preload fixes flash -->
 <link rel="preload" href="Fonts/DrukCond-Super.otf" as="font" type="font/otf" crossorigin>
 
 <style>
@@ -48,7 +48,7 @@
   }
 
   .clock {
-    width: 150px; /* ⬅️ smaller */
+    width: 150px;
     height: auto;
     cursor: pointer;
     transition: transform 0.3s;
@@ -82,14 +82,14 @@
   <img src="clock1.png" class="clock" />
 </a>
 
-<a href="clock5.html" class="clockLink">
+<a href="clock4.html" class="clockLink">
   <img src="clock5.png" class="clock" />
 </a>
 
 <script>
 const links = Array.from(document.querySelectorAll(".clockLink"));
 
-const SIZE = 150; // ⬅️ matches new image size
+const SIZE = 150;
 const SPEED = 0.9;
 
 const screenW = () => window.innerWidth;

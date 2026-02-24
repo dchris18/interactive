@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/png" href="hourglass.png">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Antique Envelope Note</title>
+<title>Time Poem</title>
 
 <link rel="preload" href="Fonts/DrukText-Heavy.otf" as="font" type="font/otf" crossorigin>
 
@@ -30,11 +31,11 @@
     --stroke: rgba(30, 20, 10, 0.18);
     --shadow: rgba(0,0,0,0.55);
 
-    /* sizing */
-    --stageMax: 980px;     /* design canvas */
-    --uiScale: 0.96;       /* overall size */
-    --downShift: 120px;    /* move whole piece down */
-    --padW: 32px;          /* safe padding for fit calc */
+  
+    --stageMax: 980px;     
+    --uiScale: 0.96;       
+    --downShift: 120px;    
+    --padW: 32px;          
     --padH: 24px;
   }
 
@@ -80,11 +81,7 @@
     mix-blend-mode: soft-light;
   }
 
-  /* =========================================================
-     FIX FOR "HUGS RIGHT" ON RESIZE:
-     - Use absolute centering with left/top 50% and translate(-50%,-50%)
-       so transforms can’t bias layout.
-     ========================================================= */
+
   .wrap{
     position:fixed;
     inset:0;
@@ -99,14 +96,14 @@
     width: var(--stageMax);
     height: var(--stageMax);
 
-    /* uniform fit factor (even scaling) */
+
     --fit: min(
       1,
       calc((100vw - var(--padW)) / var(--stageMax)),
       calc((100vh - var(--padH)) / var(--stageMax))
     );
 
-    /* ✅ Always centered, then shifted down, then scaled */
+
     transform:
       translate(-50%, calc(-50% + var(--downShift)))
       scale(calc(var(--fit) * var(--uiScale)));
@@ -125,9 +122,6 @@
     :root{ --uiScale: 0.92; --downShift: 75px; }
   }
 
-  /* =========================
-     ENVELOPE
-     ========================= */
   .envelope{
     position:relative;
     width: 780px;
@@ -188,9 +182,7 @@
     transition: transform 950ms cubic-bezier(.2,.9,.2,1);
   }
 
-  /* =========================
-     PAPER (tall, no scroll)
-     ========================= */
+
   .paper{
     position:absolute;
     left: 7.5%;
@@ -282,9 +274,7 @@
     color: var(--ink-strong);
   }
 
-  /* =========================
-     SEAL (HIDE AFTER OPEN)
-     ========================= */
+
   .seal{
     position:absolute;
     left:50%;
@@ -307,7 +297,7 @@
   }
   .seal svg{ width:100%; height:100%; display:block; }
 
-  /* ✅ when opened, the seal disappears completely */
+
   .envelope.open .seal{
     opacity: 0;
     pointer-events:none;
