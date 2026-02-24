@@ -5,11 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Broken Clock</title>
 
-<!-- Preload using the CORRECT case-sensitive path -->
 <link rel="preload" href="Fonts/DrukCond-Super.otf" as="font" type="font/otf">
 
 <style>
-  /* ===== Druk Cond Super (Correct folder path + swap) ===== */
   @font-face{
     font-family: "DrukCondSuper";
     src: url("Fonts/DrukCond-Super.otf") format("opentype");
@@ -70,22 +68,23 @@
     mix-blend-mode: soft-light;
   }
 
-  /* Headline: uses DrukCondSuper immediately (swap prevents invisible flash) */
+  /* ✅ Scaled-down headline + responsive positioning */
   .quote{
     position:fixed;
-    top:24px;
+    top: clamp(12px, 2.2vh, 22px);
     left:50%;
     transform:translateX(-50%);
-    width:min(1100px, 92vw);
+    width:min(980px, 92vw);
     text-align:center;
 
     font-family:"DrukCondSuper", system-ui, sans-serif;
     font-weight:400;
     text-transform:uppercase;
 
-   font-size: clamp(80px, 9vw, 180px);
-    line-height:0.98;
-    letter-spacing:0.06em;
+    /* was huge; now much smaller and still responsive */
+    font-size: clamp(26px, 3.4vw, 56px);
+    line-height: 0.98;
+    letter-spacing: 0.06em;
 
     color:#2a3550;
     text-shadow:
@@ -101,14 +100,20 @@
     justify-content:center;
   }
 
+  /* ✅ Make stage truly responsive and not oversized */
   .stage{
     position:relative;
-    width:min(760px, 96vw);
-    height:min(860px, 92vh);
+
+    /* was 760x860-ish; now significantly smaller + scales by viewport */
+    width: min(460px, 86vw);
+    height: min(520px, 74vh);
+
     display:flex;
     align-items:center;
     justify-content:center;
-    transform: translateY(120px);
+
+    /* was translateY(120px); now responsive so it doesn’t break on phones */
+    transform: translateY(clamp(35px, 8vh, 90px));
   }
 
   /* ===== band/strap ===== */
@@ -117,7 +122,7 @@
     top:50%;
     left:50%;
     width:170vw;
-    height:190px;
+    height: clamp(90px, 14vh, 150px); /* responsive strap thickness */
     transform: translate(-50%,-50%);
     z-index:1;
     pointer-events:none;
@@ -173,11 +178,12 @@
     mask: linear-gradient(180deg,#000 0%,#000 16%,transparent 40%,transparent 60%,#000 84%,#000 100%);
   }
 
+  /* ✅ Slots made responsive so they don’t fly off-screen */
   .slot{
     position:absolute;
     top:50%;
-    width:210px;
-    height:44px;
+    width: clamp(120px, 22vw, 190px);
+    height: clamp(22px, 4vh, 36px);
     transform: translateY(-50%);
     border-radius:999px;
     background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.24));
@@ -187,12 +193,12 @@
     opacity:0.65;
     z-index:2;
   }
-  .slot.left{ left: calc(50% - 380px); }
-  .slot.right{ right: calc(50% - 380px); }
+  .slot.left{ left: clamp(-40px, -8vw, -10px); }
+  .slot.right{ right: clamp(-40px, -8vw, -10px); }
 
-  /* ===== watch ===== */
+  /* ✅ Watch scaled down a lot, still responsive */
   .watch{
-    width:min(520px, 78vw);
+    width: min(320px, 64vw); /* was 520px/78vw */
     aspect-ratio:1/1;
     position:relative;
     z-index:3;
@@ -280,16 +286,22 @@
     background: linear-gradient(180deg, rgba(40,35,30,0.95), rgba(10,8,7,0.95));
     box-shadow: 0 12px 30px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.10);
   }
-  .hand.hour{ width:10px; height:28%; }
-  .hand.minute{ width:7px; height:40%; }
-  .hand.second{ width:3px; height:44%; background: linear-gradient(180deg, rgba(190,40,40,0.95), rgba(110,12,12,0.95)); }
+
+  /* ✅ Hands scale with watch size (not fixed px thickness) */
+  .hand.hour{   width: clamp(6px, 1.2vw, 9px);  height:28%; }
+  .hand.minute{ width: clamp(4px, 0.9vw, 7px);  height:40%; }
+  .hand.second{
+    width: clamp(2px, 0.5vw, 3px);
+    height:44%;
+    background: linear-gradient(180deg, rgba(190,40,40,0.95), rgba(110,12,12,0.95));
+  }
 
   .pivot{
     position:absolute;
     left:50%;
     top:50%;
-    width:16px;
-    height:16px;
+    width: clamp(10px, 2.2vw, 16px);
+    height: clamp(10px, 2.2vw, 16px);
     border-radius:999px;
     transform:translate(-50%,-50%);
     background:
@@ -298,7 +310,6 @@
     border:1px solid rgba(0,0,0,0.25);
   }
 
-  /* Glass overlay image (put glass.png next to HTML OR change path) */
   .glass{
     position:absolute;
     inset:13.5%;
@@ -350,6 +361,13 @@
       linear-gradient(120deg, rgba(255,255,255,0.12), transparent 35%, rgba(255,255,255,0.06));
     opacity:0.48;
     mix-blend-mode:screen;
+  }
+
+  /* ✅ Extra safety for very small screens */
+  @media (max-width: 420px){
+    body{ overflow:hidden; }
+    .stage{ transform: translateY(clamp(28px, 7vh, 70px)); }
+    .slot{ opacity:0.5; }
   }
 </style>
 </head>
