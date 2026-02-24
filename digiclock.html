@@ -29,9 +29,6 @@
     --neoGlow1: rgba(120,255,190,0.35);
     --neoGlow2: rgba(120,255,190,0.22);
     --neoGlow3: rgba(120,255,190,0.12);
-
-    /* GLOBAL SCALE: smaller overall */
-    --ui: clamp(0.70, 0.50 + 0.45vw, 0.88);
   }
 
   html, body{ height:100%; }
@@ -134,6 +131,16 @@
     100%{ opacity:0; transform: rotate(var(--ang)) translateX(var(--dist)); }
   }
 
+  /* =========================
+     RESPONSIVE SCALING SYSTEM
+     =========================
+     This makes the entire UI scale smoothly with viewport size.
+     You can tweak the min/max to your taste.
+  */
+  :root{
+    --ui: clamp(0.82, 0.60 + 0.55vw, 1.00); /* overall scale */
+  }
+
   .wrap{
     height:100%;
     display:flex;
@@ -167,7 +174,7 @@
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.08),
       inset 0 -30px 90px rgba(0,0,0,0.55);
-    min-height: calc(clamp(180px, 23vw, 270px) * var(--ui));
+    min-height: calc(clamp(190px, 24vw, 290px) * var(--ui));
     display:flex;
     align-items:center;
     justify-content:center;
@@ -197,16 +204,16 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    gap: calc(clamp(10px, 1.8vw, 20px) * var(--ui));
+    gap: calc(clamp(12px, 2vw, 24px) * var(--ui));
     width: 100%;
     max-width: calc(820px * var(--ui));
-    padding-bottom: calc(clamp(54px, 6.4vw, 72px) * var(--ui));
+    padding-bottom: calc(clamp(62px, 7vw, 78px) * var(--ui));
   }
 
   .digit-input{
     box-sizing:border-box;
-    width: calc(clamp(140px, 22vw, 240px) * var(--ui));
-    height: calc(clamp(92px, 13vw, 155px) * var(--ui));
+    width: calc(clamp(150px, 24vw, 260px) * var(--ui));
+    height: calc(clamp(100px, 14vw, 170px) * var(--ui));
     border-radius: calc(clamp(12px, 1.7vw, 16px) * var(--ui));
     border: 1px solid rgba(255,255,255,0.12);
     background:
@@ -220,7 +227,7 @@
     color: var(--neo);
     font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     font-weight: 900;
-    font-size: calc(clamp(52px, 7.2vw, 98px) * var(--ui));
+    font-size: calc(clamp(56px, 7.8vw, 110px) * var(--ui));
     line-height: 1;
     text-align:center;
     outline:none;
@@ -254,7 +261,7 @@
   .colon{
     font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     font-weight: 900;
-    font-size: calc(clamp(52px, 7.2vw, 98px) * var(--ui));
+    font-size: calc(clamp(56px, 7.8vw, 110px) * var(--ui));
     line-height: 1;
     opacity: 0.96;
     transform: translateY(-0.06em);
@@ -268,17 +275,17 @@
   .ampm{
     display:flex;
     flex-direction:column;
-    gap: calc(clamp(8px, 1.1vw, 10px) * var(--ui));
+    gap: calc(clamp(8px, 1.2vw, 10px) * var(--ui));
     margin-left: calc(clamp(2px, 0.6vw, 5px) * var(--ui));
     transform: translateY(0.06em);
   }
 
   .pill{
-    width: calc(clamp(74px, 8.5vw, 98px) * var(--ui));
+    width: calc(clamp(80px, 9vw, 105px) * var(--ui));
     border-radius: calc(14px * var(--ui));
     border: 1px solid rgba(255,255,255,0.12);
     background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.35));
-    padding: calc(clamp(7px, 0.95vw, 9px) * var(--ui)) calc(clamp(9px, 1.1vw, 11px) * var(--ui));
+    padding: calc(clamp(8px, 1vw, 10px) * var(--ui)) calc(clamp(10px, 1.2vw, 12px) * var(--ui));
     cursor:pointer;
     transition: transform 160ms ease, background 200ms ease, border-color 200ms ease, filter 200ms ease;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
@@ -304,14 +311,14 @@
   .controls{
     position:absolute;
     left: 50%;
-    bottom: calc(clamp(9px, 1.6vw, 14px) * var(--ui));
+    bottom: calc(clamp(10px, 1.7vw, 16px) * var(--ui));
     transform: translateX(-50%);
     display:flex;
     justify-content:center;
-    gap: calc(clamp(9px, 1.4vw, 11px) * var(--ui));
+    gap: calc(clamp(10px, 1.6vw, 12px) * var(--ui));
     flex-wrap: wrap;
     z-index:5;
-    width: calc(100% - calc(clamp(22px, 4.2vw, 40px) * var(--ui)));
+    width: calc(100% - calc(clamp(24px, 4.6vw, 44px) * var(--ui)));
     max-width: calc(820px * var(--ui));
     pointer-events:auto;
   }
@@ -319,13 +326,13 @@
   .btn{
     border: 1px solid rgba(255,255,255,0.14);
     background: rgba(255,255,255,0.05);
-    padding: calc(clamp(9px, 1.2vw, 11px) * var(--ui)) calc(clamp(12px, 1.6vw, 14px) * var(--ui));
+    padding: calc(clamp(10px, 1.4vw, 12px) * var(--ui)) calc(clamp(14px, 1.8vw, 16px) * var(--ui));
     border-radius: calc(16px * var(--ui));
     cursor:pointer;
     transition: transform 160ms ease, background 200ms ease, border-color 200ms ease;
     font-weight: 900;
     letter-spacing: 0.06em;
-    min-width: calc(clamp(118px, 18vw, 200px) * var(--ui));
+    min-width: calc(clamp(130px, 20vw, 220px) * var(--ui));
     text-align:center;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -364,13 +371,14 @@
     body{ transition:none; }
   }
 
+  /* Phone tweaks: keep it clean and centered */
   @media (max-width: 640px){
-    :root{ --ui: clamp(0.62, 0.54 + 0.28vw, 0.78); }
+    :root{ --ui: clamp(0.78, 0.70 + 0.35vw, 0.92); }
 
     .digits{
       flex-wrap: wrap;
       row-gap: calc(clamp(10px, 2vw, 16px) * var(--ui));
-      padding-bottom: calc(clamp(70px, 10vw, 94px) * var(--ui));
+      padding-bottom: calc(clamp(78px, 11vw, 102px) * var(--ui));
     }
     .ampm{
       flex-direction: row;
@@ -380,8 +388,9 @@
     }
   }
 
+  /* Ultra-small devices */
   @media (max-width: 380px){
-    :root{ --ui: 0.58; }
+    :root{ --ui: 0.74; }
     .digit-input{ letter-spacing: 0.04em; }
   }
 </style>
