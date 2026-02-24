@@ -30,8 +30,8 @@
     --neoGlow2: rgba(120,255,190,0.22);
     --neoGlow3: rgba(120,255,190,0.12);
 
-    /* GLOBAL SIZE CONTROL (smaller overall + responsive) */
-    --ui: clamp(0.62, 0.48 + 0.40vw, 0.85);
+    /* Smaller overall + scales with BOTH width/height (vmin) */
+    --ui: clamp(0.48, 0.28 + 0.85vmin, 0.78);
   }
 
   html, body{ height:100%; }
@@ -147,28 +147,28 @@
   }
 
   .clock-case{
-    width: min(calc(820px * var(--ui)), 92vw);
-    border-radius: calc(clamp(18px, 2.6vw, 30px) * var(--ui));
-    padding: calc(clamp(7px, 1vw, 9px) * var(--ui));
+    width: min(calc(720px * var(--ui)), 92vw);
+    border-radius: calc(clamp(16px, 2.4vw, 28px) * var(--ui));
+    padding: calc(clamp(6px, 1vw, 8px) * var(--ui));
     background: linear-gradient(180deg, var(--bezelA), var(--bezelB));
     box-shadow:
-      0 40px 120px rgba(0,0,0,0.55),
+      0 34px 110px rgba(0,0,0,0.55),
       inset 0 1px 0 rgba(255,255,255,0.20);
     border: 1px solid rgba(255,255,255,0.10);
     position:relative;
   }
 
   .clock-screen{
-    border-radius: calc(clamp(14px, 2.2vw, 24px) * var(--ui));
+    border-radius: calc(clamp(12px, 2vw, 22px) * var(--ui));
     background: linear-gradient(180deg, var(--screen0), var(--screen1));
     border: 1px solid var(--screenStroke);
     position:relative;
     overflow:hidden;
-    padding: calc(clamp(12px, 2.2vw, 20px) * var(--ui));
+    padding: calc(clamp(10px, 2vw, 18px) * var(--ui));
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.08),
-      inset 0 -30px 90px rgba(0,0,0,0.55);
-    min-height: calc(clamp(170px, 22vw, 260px) * var(--ui));
+      inset 0 -26px 80px rgba(0,0,0,0.55);
+    min-height: calc(clamp(150px, 20vw, 230px) * var(--ui));
     display:flex;
     align-items:center;
     justify-content:center;
@@ -198,30 +198,30 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    gap: calc(clamp(10px, 1.8vw, 20px) * var(--ui));
+    gap: calc(clamp(8px, 1.6vw, 16px) * var(--ui));
     width: 100%;
-    max-width: calc(760px * var(--ui));
-    padding-bottom: calc(clamp(52px, 6.2vw, 72px) * var(--ui));
+    max-width: calc(660px * var(--ui));
+    padding-bottom: calc(clamp(44px, 5.8vw, 64px) * var(--ui));
   }
 
   .digit-input{
     box-sizing:border-box;
-    width: calc(clamp(130px, 20vw, 230px) * var(--ui));
-    height: calc(clamp(86px, 12vw, 150px) * var(--ui));
-    border-radius: calc(clamp(10px, 1.6vw, 15px) * var(--ui));
+    width: calc(clamp(112px, 18vw, 200px) * var(--ui));
+    height: calc(clamp(74px, 10.5vw, 128px) * var(--ui));
+    border-radius: calc(clamp(9px, 1.4vw, 14px) * var(--ui));
     border: 1px solid rgba(255,255,255,0.12);
     background:
       radial-gradient(circle at 30% 20%, rgba(255,255,255,0.05), transparent 45%),
       linear-gradient(180deg, rgba(0,0,0,0.38), rgba(0,0,0,0.76));
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.08),
-      inset 0 -18px 40px rgba(0,0,0,0.35),
-      0 18px 44px rgba(0,0,0,0.22);
+      inset 0 -16px 36px rgba(0,0,0,0.35),
+      0 14px 38px rgba(0,0,0,0.22);
 
     color: var(--neo);
     font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     font-weight: 900;
-    font-size: calc(clamp(46px, 6.6vw, 90px) * var(--ui));
+    font-size: calc(clamp(40px, 5.8vw, 78px) * var(--ui));
     line-height: 1;
     text-align:center;
     outline:none;
@@ -248,14 +248,14 @@
     box-shadow:
       0 0 0 4px rgba(120,255,190,0.10),
       inset 0 1px 0 rgba(255,255,255,0.08),
-      inset 0 -18px 40px rgba(0,0,0,0.35),
-      0 18px 44px rgba(0,0,0,0.22);
+      inset 0 -16px 36px rgba(0,0,0,0.35),
+      0 14px 38px rgba(0,0,0,0.22);
   }
 
   .colon{
     font-family: DrukTextHeavy, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     font-weight: 900;
-    font-size: calc(clamp(46px, 6.6vw, 90px) * var(--ui));
+    font-size: calc(clamp(40px, 5.8vw, 78px) * var(--ui));
     line-height: 1;
     opacity: 0.96;
     transform: translateY(-0.06em);
@@ -269,17 +269,17 @@
   .ampm{
     display:flex;
     flex-direction:column;
-    gap: calc(clamp(7px, 1vw, 9px) * var(--ui));
-    margin-left: calc(clamp(2px, 0.6vw, 5px) * var(--ui));
+    gap: calc(clamp(6px, 0.9vw, 8px) * var(--ui));
+    margin-left: calc(clamp(2px, 0.5vw, 4px) * var(--ui));
     transform: translateY(0.06em);
   }
 
   .pill{
-    width: calc(clamp(70px, 8vw, 96px) * var(--ui));
+    width: calc(clamp(64px, 7.5vw, 88px) * var(--ui));
     border-radius: calc(14px * var(--ui));
     border: 1px solid rgba(255,255,255,0.12);
     background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.35));
-    padding: calc(clamp(7px, 0.95vw, 9px) * var(--ui)) calc(clamp(9px, 1.1vw, 11px) * var(--ui));
+    padding: calc(clamp(6px, 0.9vw, 8px) * var(--ui)) calc(clamp(8px, 1vw, 10px) * var(--ui));
     cursor:pointer;
     transition: transform 160ms ease, background 200ms ease, border-color 200ms ease, filter 200ms ease;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
@@ -305,28 +305,28 @@
   .controls{
     position:absolute;
     left: 50%;
-    bottom: calc(clamp(9px, 1.5vw, 14px) * var(--ui));
+    bottom: calc(clamp(8px, 1.4vw, 12px) * var(--ui));
     transform: translateX(-50%);
     display:flex;
     justify-content:center;
-    gap: calc(clamp(8px, 1.4vw, 12px) * var(--ui));
+    gap: calc(clamp(7px, 1.2vw, 10px) * var(--ui));
     flex-wrap: wrap;
     z-index:5;
-    width: calc(100% - calc(clamp(20px, 4vw, 40px) * var(--ui)));
-    max-width: calc(760px * var(--ui));
+    width: calc(100% - calc(clamp(18px, 3.6vw, 36px) * var(--ui)));
+    max-width: calc(660px * var(--ui));
     pointer-events:auto;
   }
 
   .btn{
     border: 1px solid rgba(255,255,255,0.14);
     background: rgba(255,255,255,0.05);
-    padding: calc(clamp(9px, 1.2vw, 11px) * var(--ui)) calc(clamp(12px, 1.6vw, 14px) * var(--ui));
+    padding: calc(clamp(8px, 1.05vw, 10px) * var(--ui)) calc(clamp(10px, 1.35vw, 12px) * var(--ui));
     border-radius: calc(16px * var(--ui));
     cursor:pointer;
     transition: transform 160ms ease, background 200ms ease, border-color 200ms ease;
     font-weight: 900;
     letter-spacing: 0.06em;
-    min-width: calc(clamp(112px, 18vw, 190px) * var(--ui));
+    min-width: calc(clamp(96px, 16vw, 168px) * var(--ui));
     text-align:center;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -365,14 +365,14 @@
     body{ transition:none; }
   }
 
-  /* Mobile: even smaller + tidy wrap */
+  /* Phones: reduce UI a bit more + wrap nicely */
   @media (max-width: 640px){
-    :root{ --ui: clamp(0.54, 0.48 + 0.22vw, 0.70); }
+    :root{ --ui: clamp(0.44, 0.26 + 0.75vmin, 0.62); }
 
     .digits{
       flex-wrap: wrap;
       row-gap: calc(clamp(10px, 2vw, 16px) * var(--ui));
-      padding-bottom: calc(clamp(62px, 10vw, 90px) * var(--ui));
+      padding-bottom: calc(clamp(56px, 10vw, 84px) * var(--ui));
     }
     .ampm{
       flex-direction: row;
@@ -383,7 +383,7 @@
   }
 
   @media (max-width: 380px){
-    :root{ --ui: 0.50; }
+    :root{ --ui: 0.42; }
     .digit-input{ letter-spacing: 0.04em; }
   }
 </style>
