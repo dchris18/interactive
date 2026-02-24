@@ -69,8 +69,8 @@ body{
 }
 
 .wrap{
-  width: min(720px, 94vw);
-  height: min(680px, 90vh);
+  width: min(660px, 92vw);
+  height: min(620px, 88vh);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -80,8 +80,7 @@ body{
 }
 
 .sundial{
-  /* CHANGED: slightly smaller overall */
-  width: clamp(280px, 56vw, 420px);
+  width: clamp(240px, 48vw, 360px);
   aspect-ratio: 1 / 1;
   position:relative;
   touch-action:none;
@@ -415,8 +414,7 @@ body{
     padding-bottom: 105px;
   }
   .sundial{
-    /* CHANGED: smaller on phones too */
-    width: min(82vw, 400px);
+    width: min(78vw, 340px);
   }
   .readout{
     font-size: clamp(22px, 7.2vw, 38px);
@@ -436,7 +434,7 @@ body{
     padding-bottom: 98px;
   }
   .sundial{
-    width: 80vw;
+    width: 74vw;
   }
   .readout{
     font-size: clamp(22px, 8.4vw, 36px);
@@ -538,7 +536,6 @@ body{
 
   function positionSunHandle(deg){
     const { cx, cy, r } = rectCenter(dial);
-
     const radius = (Math.min(r.width, r.height) / 2) * getHandleRadiusFactor();
 
     const rad = (deg - 90) * (Math.PI / 180);
