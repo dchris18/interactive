@@ -1,614 +1,118 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Hourglass</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spinning Hourglass</title>
+
   <style>
-    html,body{height:100%; margin:0;}
-    body{
-      display:grid;
-      place-items:center;
-      background: radial-gradient(1200px 900px at 50% 25%, #111f46, #070a14 70%);
-      overflow:hidden;
+    @font-face {
+      font-family: "DrukText-Heavy";
+      src: url("fonts/DrukText-Heavy.otf") format("opentype");
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
     }
-    canvas{
-      width:min(560px, 92vw);
-      height:auto;
-      cursor:pointer;
-      filter: drop-shadow(0 26px 34px rgba(0,0,0,.55));
-      user-select:none;
-      -webkit-user-select:none;
-      touch-action:manipulation;
+
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+
+      background: radial-gradient(
+        circle at 50% 40%,
+        #fff7cc 0%,
+        #ffd580 35%,
+        #ffb347 60%,
+        #ff8c42 85%,
+        #ff7a1a 100%
+      );
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.06);
+      pointer-events: none;
+    }
+
+    /* TEXT */
+    .title {
+      font-family: "DrukText-Heavy", sans-serif;
+      color: #fffbe6;
+
+      /* BIGGER + ALL CAPS */
+      font-size: clamp(42px, 6vw, 100px);
+      text-transform: uppercase;
+
+      margin-bottom: clamp(24px, 5vh, 50px);
+      text-align: center;
+      letter-spacing: 2px;
+
+      /* DROP SHADOW */
+      text-shadow:
+        0 6px 20px rgba(0,0,0,0.25),
+        0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .wrap {
+      width: min(70vmin, 560px);
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+    }
+
+    a.hourglass-link {
+      display: inline-block;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    img#hourglass {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+
+      animation: spin 6s linear infinite;
+      transform-origin: center;
+
+      filter: drop-shadow(0 18px 28px rgba(0,0,0,0.18));
+      transition: transform 0.2s ease;
+    }
+
+    a.hourglass-link:hover img#hourglass {
+      transform: scale(1.03);
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 420px) {
+      .wrap { width: min(82vmin, 520px); }
+      .title { font-size: clamp(36px, 8vw, 70px); }
     }
   </style>
 </head>
+
 <body>
-<canvas id="c" width="800" height="920" aria-label="hourglass"></canvas>
-
-<script>
-(() => {
-  const canvas = document.getElementById("c");
-  const ctx = canvas.getContext("2d");
-
-  // =========================
-  // Sand tuning (bigger grains + lots more sand, slower flow)
-  // =========================
-  const GRAIN_COUNT = 1500;      // A LOT more sand (still reasonable performance)
-  const GRAIN_R_MIN = 2.2;       // bigger grains
-  const GRAIN_R_MAX = 3.2;
-
-  const ITERATIONS = 3;          // more constraint passes so grains interact more
-  const CELL = 14;               // collision grid cell size for bigger grains
-
-  const GRAVITY = 1150;          // less gravity so they don't instantly slip through
-  const DAMPING = 0.997;
-  const BOUNCE = 0.03;
-  const FRICTION = 0.78;
-
-  // Helps prevent total jams at the neck, but not a straight "laser" stream
-  const FLOW_JITTER = 0.10;
-  const NECK_JITTER_RADIUS = 22;
-
-  // Flip animation
-  const FLIP_MS = 720;
-
-  // -----------------------
-  // HiDPI sizing
-  // -----------------------
-  function resize() {
-    const cssW = Math.min(560, innerWidth * 0.92);
-    canvas.style.width = cssW + "px";
-    canvas.style.height = "auto";
-    const cssH = cssW * (920/800);
-
-    const dpr = Math.max(1, devicePixelRatio || 1);
-    canvas.width = Math.round(cssW * dpr);
-    canvas.height = Math.round(cssH * dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-  resize();
-  addEventListener("resize", resize);
-
-  // -----------------------
-  // Geometry
-  // -----------------------
-  function geom() {
-    const W = canvas.getBoundingClientRect().width;
-    const H = W * (920/800);
-    const cx = W/2;
-    const cy = H/2;
-
-    const glassH = Math.min(H*0.76, 650);
-    const topY = cy - glassH/2;
-    const botY = cy + glassH/2;
-
-    const bulbMax = Math.min(W*0.30, 190);
-
-    // Make the neck narrower so larger grains don't all shoot straight down.
-    const neckHalf = Math.max(9.5, bulbMax*0.085);
-
-    return {W,H,cx,cy,glassH,topY,botY,bulbMax,neckHalf};
-  }
-
-  // Inner half-width at y (hourglass cavity)
-  function halfWidthAtY(g, y) {
-    const t = (y - g.topY) / (g.botY - g.topY); // 0..1
-
-    const topB = Math.exp(-Math.pow((t - 0.18)/0.18, 2));
-    const botB = Math.exp(-Math.pow((t - 0.82)/0.18, 2));
-    const bulb = (topB + botB);
-
-    const neck = 1 - Math.exp(-Math.pow((t - 0.5)/0.12, 2));
-    let w = g.neckHalf + (g.bulbMax - g.neckHalf) * (0.14 + 0.86*bulb) * (0.56 + 0.44*neck);
-
-    // Stronger pinch right at the waist
-    const pinch = 1 - 0.30 * Math.exp(-Math.pow((t - 0.5)/0.055, 2));
-    w *= pinch;
-
-    return w;
-  }
-
-  function traceInnerPath(g) {
-    const pts = [];
-    const steps = 220;
-    for (let i=0; i<=steps; i++){
-      const y = g.topY + (g.botY - g.topY) * (i/steps);
-      const hw = halfWidthAtY(g, y);
-      pts.push({x: g.cx - hw, y});
-    }
-    for (let i=steps; i>=0; i--){
-      const y = g.topY + (g.botY - g.topY) * (i/steps);
-      const hw = halfWidthAtY(g, y);
-      pts.push({x: g.cx + hw, y});
-    }
-    return pts;
-  }
-
-  function pathFromPoints(pts){
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-    for (let i=1;i<pts.length;i++) ctx.lineTo(pts[i].x, pts[i].y);
-    ctx.closePath();
-  }
-
-  // -----------------------
-  // Spatial hash
-  // -----------------------
-  const grains = new Array(GRAIN_COUNT).fill(0).map(() => ({ x:0,y:0,vx:0,vy:0,r:2.6 }));
-  const grid = new Map();
-
-  function keyFor(x,y){
-    const cx = (x / CELL) | 0;
-    const cy = (y / CELL) | 0;
-    return (cx << 16) ^ (cy & 0xffff);
-  }
-  function gridClear(){ grid.clear(); }
-  function gridInsert(i, x, y){
-    const k = keyFor(x,y);
-    const a = grid.get(k);
-    if (a) a.push(i); else grid.set(k, [i]);
-  }
-  function gridNeighbors(x,y){
-    const cx = (x / CELL) | 0;
-    const cy = (y / CELL) | 0;
-    const out = [];
-    for (let oy=-1; oy<=1; oy++){
-      for (let ox=-1; ox<=1; ox++){
-        const k = ((cx+ox) << 16) ^ ((cy+oy) & 0xffff);
-        const a = grid.get(k);
-        if (a) out.push(...a);
-      }
-    }
-    return out;
-  }
-
-  function rand(a,b){ return a + Math.random()*(b-a); }
-  function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
-
-  // -----------------------
-  // Init sand: fill top bulb and TOUCH the glass (no gaps)
-  // -----------------------
-  function initSandTop() {
-    const g = geom();
-    const midY = (g.topY + g.botY)/2;
-
-    let placed = 0;
-    let attempts = 0;
-
-    // Minimal margins so the sand pile touches the glass walls
-    const yMin = g.topY + 12;
-    const yMax = midY - 18;
-
-    while (placed < GRAIN_COUNT && attempts < GRAIN_COUNT * 120){
-      attempts++;
-
-      const r = rand(GRAIN_R_MIN, GRAIN_R_MAX);
-      const y = rand(yMin, yMax);
-      const hw = halfWidthAtY(g, y);
-      const x = rand(g.cx - hw + r + 0.6, g.cx + hw - r - 0.6);
-
-      let ok = true;
-      // local-ish check (fast). good enough visually.
-      for (let j=Math.max(0, placed-240); j<placed; j++){
-        const p = grains[j];
-        const dx = x - p.x, dy = y - p.y;
-        const rr = r + p.r + 0.18;
-        if (dx*dx + dy*dy < rr*rr) { ok = false; break; }
-      }
-      if (!ok) continue;
-
-      grains[placed].x = x;
-      grains[placed].y = y;
-      grains[placed].vx = rand(-8, 8);
-      grains[placed].vy = rand(-8, 8);
-      grains[placed].r = r;
-      placed++;
-    }
-
-    // fill remaining
-    for (let i=placed;i<GRAIN_COUNT;i++){
-      const r = rand(GRAIN_R_MIN, GRAIN_R_MAX);
-      const y = rand(yMin, yMax);
-      const hw = halfWidthAtY(g, y);
-      const x = rand(g.cx - hw + r + 0.6, g.cx + hw - r - 0.6);
-      grains[i].x = x; grains[i].y = y;
-      grains[i].vx = 0; grains[i].vy = 0; grains[i].r = r;
-    }
-  }
-  initSandTop();
-
-  // -----------------------
-  // Flip state
-  // -----------------------
-  let flipping = false;
-  let flipT = 0;
-  let flipRot = 0;
-  let last = performance.now();
-
-  function easeInOut(t){ return (t<0.5) ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2; }
-
-  function startFlip(){
-    if (flipping) return;
-    flipping = true;
-    flipT = 0;
-  }
-  canvas.addEventListener("click", startFlip);
-
-  function applyFlipToParticles(g){
-    for (let i=0;i<GRAIN_COUNT;i++){
-      const p = grains[i];
-      p.x = g.cx + (g.cx - p.x);
-      p.y = g.cy + (g.cy - p.y);
-      p.vx = -p.vx;
-      p.vy = -p.vy;
-    }
-  }
-
-  // -----------------------
-  // Physics step
-  // -----------------------
-  function step(dt) {
-    const g = geom();
-    const midY = (g.topY + g.botY)/2;
-
-    for (let i=0;i<GRAIN_COUNT;i++){
-      const p = grains[i];
-      p.vx *= DAMPING;
-      p.vy *= DAMPING;
-
-      p.vy += GRAVITY * dt;
-
-      // small jitter near neck to prevent perfect "tube" falling
-      if (Math.abs(p.y - midY) < NECK_JITTER_RADIUS){
-        p.vx += (Math.random()-0.5) * FLOW_JITTER * 220 * dt;
-      }
-
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-    }
-
-    gridClear();
-    for (let i=0;i<GRAIN_COUNT;i++){
-      gridInsert(i, grains[i].x, grains[i].y);
-    }
-
-    for (let it=0; it<ITERATIONS; it++){
-      // particle collisions
-      for (let i=0;i<GRAIN_COUNT;i++){
-        const a = grains[i];
-        const neigh = gridNeighbors(a.x, a.y);
-
-        for (let k=0;k<neigh.length;k++){
-          const j = neigh[k];
-          if (j <= i) continue;
-
-          const b = grains[j];
-          const dx = b.x - a.x;
-          const dy = b.y - a.y;
-          const minDist = a.r + b.r + 0.08;
-          const d2 = dx*dx + dy*dy;
-          if (d2 >= minDist*minDist || d2 === 0) continue;
-
-          const d = Math.sqrt(d2);
-          const nx = dx / d;
-          const ny = dy / d;
-          const overlap = (minDist - d);
-
-          // position separation
-          const push = overlap * 0.5;
-          a.x -= nx * push; a.y -= ny * push;
-          b.x += nx * push; b.y += ny * push;
-
-          // inelastic velocity response
-          const rvx = b.vx - a.vx;
-          const rvy = b.vy - a.vy;
-          const vn = rvx*nx + rvy*ny;
-
-          if (vn < 0){
-            const imp = -(1 - 0.22) * vn * 0.5;
-            a.vx -= nx * imp; a.vy -= ny * imp;
-            b.vx += nx * imp; b.vy += ny * imp;
-
-            // tangential friction
-            const tx = -ny, ty = nx;
-            const vt = rvx*tx + rvy*ty;
-            const fr = vt * 0.5 * (1 - FRICTION);
-            a.vx += tx*fr; a.vy += ty*fr;
-            b.vx -= tx*fr; b.vy -= ty*fr;
-          }
-        }
-      }
-
-      // wall constraints
-      for (let i=0;i<GRAIN_COUNT;i++){
-        const p = grains[i];
-
-        // clamp inside vertical bounds
-        p.y = clamp(p.y, g.topY + p.r + 7, g.botY - p.r - 7);
-
-        const hw = halfWidthAtY(g, p.y);
-        const left = g.cx - hw + p.r;
-        const right = g.cx + hw - p.r;
-
-        if (p.x < left){
-          p.x = left;
-          p.vx = Math.abs(p.vx) * BOUNCE;
-          p.vy *= FRICTION;
-        } else if (p.x > right){
-          p.x = right;
-          p.vx = -Math.abs(p.vx) * BOUNCE;
-          p.vy *= FRICTION;
-        }
-      }
-    }
-  }
-
-  // -----------------------
-  // Drawing
-  // -----------------------
-  function roundedRect(x,y,w,h,r){
-    r = Math.min(r, w/2, h/2);
-    ctx.beginPath();
-    ctx.moveTo(x+r, y);
-    ctx.arcTo(x+w, y, x+w, y+h, r);
-    ctx.arcTo(x+w, y+h, x, y+h, r);
-    ctx.arcTo(x, y+h, x, y, r);
-    ctx.arcTo(x, y, x+w, y, r);
-    ctx.closePath();
-  }
-
-  // Make caps "more natural" + touch the glass (no floating gap)
-  function drawWoodCaps(g){
-    const innerPts = traceInnerPath(g);
-    // approximate outer width from max inner width
-    let maxInner = 0;
-    for (let i=0;i<innerPts.length;i++){
-      const dx = Math.abs(innerPts[i].x - g.cx);
-      if (dx > maxInner) maxInner = dx;
-    }
-    const capW = (maxInner*2) + 88;
-    const capH = 44;
-    const r = 22;
-
-    const topCapY = g.topY - capH - 10; // tighter
-    const botCapY = g.botY + 10;
-
-    function cap(y){
-      const x = g.cx - capW/2;
-
-      roundedRect(x, y, capW, capH, r);
-      const grad = ctx.createLinearGradient(x, y, x+capW, y+capH);
-      grad.addColorStop(0, "#6a3c22");
-      grad.addColorStop(0.22, "#b07543");
-      grad.addColorStop(0.55, "#7a4527");
-      grad.addColorStop(0.85, "#c48954");
-      grad.addColorStop(1, "#7a4527");
-      ctx.fillStyle = grad;
-      ctx.fill();
-
-      // grain streaks
-      ctx.save();
-      ctx.clip();
-      ctx.globalAlpha = 0.18;
-      for (let i=0;i<16;i++){
-        const yy = y + (i/16)*capH;
-        ctx.beginPath();
-        ctx.moveTo(x-20, yy);
-        ctx.bezierCurveTo(
-          x+capW*0.25, yy+rand(-6,6),
-          x+capW*0.75, yy+rand(-6,6),
-          x+capW+20, yy+rand(-4,4)
-        );
-        ctx.strokeStyle = "rgba(40,18,8,.65)";
-        ctx.lineWidth = rand(1,2.0);
-        ctx.stroke();
-      }
-      ctx.restore();
-
-      // subtle bevel (not a big outline)
-      ctx.strokeStyle = "rgba(0,0,0,.22)";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // varnish sheen
-      ctx.save();
-      ctx.globalAlpha = 0.22;
-      roundedRect(x+10, y+8, capW-20, capH*0.42, r-10);
-      const sheen = ctx.createLinearGradient(x, y, x+capW, y);
-      sheen.addColorStop(0, "rgba(255,255,255,.00)");
-      sheen.addColorStop(0.48, "rgba(255,255,255,.40)");
-      sheen.addColorStop(1, "rgba(255,255,255,.00)");
-      ctx.fillStyle = sheen;
-      ctx.fill();
-      ctx.restore();
-    }
-
-    cap(topCapY);
-    cap(botCapY);
-
-    // subtle shadow where wood meets glass (helps it feel attached)
-    ctx.save();
-    ctx.globalAlpha = 0.18;
-    ctx.fillStyle = "rgba(0,0,0,.7)";
-    ctx.beginPath();
-    ctx.ellipse(g.cx, g.topY - 2, maxInner + 34, 14, 0, 0, Math.PI*2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(g.cx, g.botY + 2, maxInner + 34, 14, 0, 0, Math.PI*2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // Glass without borders (no outline stroke)
-  function drawGlass(g){
-    const innerPts = traceInnerPath(g);
-    const expand = 13;
-    const outerPts = innerPts.map(pt => {
-      const dir = (pt.x < g.cx) ? -1 : 1;
-      return { x: pt.x + dir*expand, y: pt.y };
-    });
-
-    // outer fill (no border stroke)
-    pathFromPoints(outerPts);
-    const glassFill = ctx.createLinearGradient(g.cx - g.bulbMax, g.topY, g.cx + g.bulbMax, g.botY);
-    glassFill.addColorStop(0, "rgba(210,230,255,.16)");
-    glassFill.addColorStop(0.48, "rgba(135,165,230,.07)");
-    glassFill.addColorStop(1, "rgba(210,230,255,.14)");
-    ctx.fillStyle = glassFill;
-    ctx.fill();
-
-    // inner cavity tint
-    ctx.save();
-    pathFromPoints(innerPts);
-    ctx.clip();
-    const tint = ctx.createLinearGradient(g.cx, g.topY, g.cx, g.botY);
-    tint.addColorStop(0, "rgba(255,255,255,.09)");
-    tint.addColorStop(0.55, "rgba(255,255,255,.03)");
-    tint.addColorStop(1, "rgba(255,255,255,.07)");
-    ctx.fillStyle = tint;
-    ctx.fillRect(g.cx - g.bulbMax - 120, g.topY - 80, g.bulbMax*2 + 240, g.glassH + 160);
-
-    // refraction band
-    const band = ctx.createLinearGradient(g.cx - g.bulbMax, g.topY, g.cx + g.bulbMax, g.topY);
-    band.addColorStop(0, "rgba(255,255,255,.00)");
-    band.addColorStop(0.42, "rgba(255,255,255,.10)");
-    band.addColorStop(0.58, "rgba(255,255,255,.20)");
-    band.addColorStop(1, "rgba(255,255,255,.00)");
-    ctx.globalAlpha = 0.75;
-    ctx.fillStyle = band;
-    ctx.fillRect(g.cx - g.bulbMax - 130, g.topY - 80, g.bulbMax*2 + 260, g.glassH + 160);
-    ctx.restore();
-
-    // highlights ONLY (no border)
-    ctx.save();
-    ctx.globalAlpha = 0.22;
-    ctx.lineWidth = 7;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "rgba(255,255,255,.34)";
-    ctx.beginPath();
-    for (let i=0;i<innerPts.length/2;i+=11){
-      const pt = innerPts[i];
-      if (pt.x > g.cx) continue;
-      if (i===0) ctx.moveTo(pt.x+10, pt.y+8);
-      else ctx.lineTo(pt.x+10, pt.y+8);
-    }
-    ctx.stroke();
-
-    ctx.globalAlpha = 0.10;
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "rgba(255,255,255,.50)";
-    ctx.beginPath();
-    for (let i=innerPts.length-1;i>=innerPts.length/2;i-=14){
-      const pt = innerPts[i];
-      if (pt.x < g.cx) continue;
-      if (i===innerPts.length-1) ctx.moveTo(pt.x-12, pt.y-10);
-      else ctx.lineTo(pt.x-12, pt.y-10);
-    }
-    ctx.stroke();
-    ctx.restore();
-
-    // neck ring detail (soft)
-    const midY = (g.topY + g.botY)/2;
-    ctx.save();
-    ctx.globalAlpha = 0.26;
-    ctx.strokeStyle = "rgba(255,255,255,.22)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.ellipse(g.cx, midY, g.neckHalf*0.9, 7, 0, 0, Math.PI*2);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  function drawBackground(g){
-    ctx.clearRect(0,0,g.W,g.H);
-    const v = ctx.createRadialGradient(g.cx, g.H*0.26, 60, g.cx, g.cy, Math.max(g.W,g.H)*0.75);
-    v.addColorStop(0, "rgba(255,255,255,.06)");
-    v.addColorStop(1, "rgba(0,0,0,.58)");
-    ctx.fillStyle = v;
-    ctx.fillRect(0,0,g.W,g.H);
-
-    ctx.save();
-    ctx.globalAlpha = 0.09;
-    for (let i=0;i<55;i++){
-      const x = (Math.random()*g.W)|0;
-      const y = (Math.random()*g.H)|0;
-      ctx.beginPath();
-      ctx.arc(x,y, Math.random()*1.6, 0, Math.PI*2);
-      ctx.fillStyle = "rgba(255,255,255,.8)";
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-
-  function drawGrains(g){
-    const innerPts = traceInnerPath(g);
-    ctx.save();
-    pathFromPoints(innerPts);
-    ctx.clip();
-
-    for (let i=0;i<GRAIN_COUNT;i++){
-      const p = grains[i];
-      const flick = 0.80 + 0.20*Math.sin((p.x+p.y)*0.03 + i*0.012);
-      ctx.fillStyle = `rgba(236, 198, 120, ${0.92*flick})`;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-      ctx.fill();
-    }
-
-    // subtle neck glow (very light)
-    const midY = (g.topY + g.botY)/2;
-    ctx.globalAlpha = 0.06;
-    const glow = ctx.createLinearGradient(g.cx, midY-40, g.cx, midY+140);
-    glow.addColorStop(0, "rgba(255,230,170,.0)");
-    glow.addColorStop(0.45, "rgba(255,230,170,.38)");
-    glow.addColorStop(1, "rgba(255,230,170,.0)");
-    ctx.fillStyle = glow;
-    roundedRect(g.cx-7, midY-34, 14, 178, 999);
-    ctx.fill();
-
-    ctx.restore();
-  }
-
-  // -----------------------
-  // Main loop
-  // -----------------------
-  function loop(now){
-    const dt = clamp((now - last)/1000, 0, 0.033);
-    last = now;
-
-    const g = geom();
-
-    if (flipping){
-      flipT += (dt*1000)/FLIP_MS;
-      const t = clamp(flipT, 0, 1);
-      flipRot = Math.PI * easeInOut(t);
-      if (t >= 1){
-        flipping = false;
-        flipRot = 0;
-        applyFlipToParticles(g);
-      }
-    } else {
-      step(dt);
-    }
-
-    drawBackground(g);
-
-    ctx.save();
-    ctx.translate(g.cx, g.cy);
-    ctx.rotate(flipRot);
-    ctx.translate(-g.cx, -g.cy);
-
-    drawWoodCaps(g);
-    drawGrains(g);
-    drawGlass(g);
-
-    ctx.restore();
-
-    requestAnimationFrame(loop);
-  }
-  requestAnimationFrame(loop);
-})();
-</script>
+  <div class="title">PLEASE, TAKE A SHORT BREAK</div>
+
+  <div class="wrap">
+    <a href="https://www.youtube.com/watch?v=BbtMeLMQFs4" target="_blank">
+      <img id="hourglass" src="hourglass.png" alt="Spinning hourglass" />
+    </a>
+  </div>
 </body>
 </html>
