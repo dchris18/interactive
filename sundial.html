@@ -69,8 +69,8 @@ body{
 }
 
 .wrap{
-  width: min(760px, 94vw);
-  height: min(720px, 90vh);
+  width: min(720px, 94vw);
+  height: min(680px, 90vh);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -80,7 +80,8 @@ body{
 }
 
 .sundial{
-  width: clamp(300px, 60vw, 460px);
+  /* CHANGED: slightly smaller overall */
+  width: clamp(280px, 56vw, 420px);
   aspect-ratio: 1 / 1;
   position:relative;
   touch-action:none;
@@ -414,7 +415,8 @@ body{
     padding-bottom: 105px;
   }
   .sundial{
-    width: min(86vw, 430px);
+    /* CHANGED: smaller on phones too */
+    width: min(82vw, 400px);
   }
   .readout{
     font-size: clamp(22px, 7.2vw, 38px);
@@ -434,7 +436,7 @@ body{
     padding-bottom: 98px;
   }
   .sundial{
-    width: 84vw;
+    width: 80vw;
   }
   .readout{
     font-size: clamp(22px, 8.4vw, 36px);
