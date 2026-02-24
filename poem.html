@@ -30,10 +30,10 @@
     --stroke: rgba(30, 20, 10, 0.18);
     --shadow: rgba(0,0,0,0.55);
 
-    /* smaller overall (you can tweak) */
-    --uiScale: 0.66;
+    /* ✅ a bit bigger overall */
+    --uiScale: 0.74;
 
-    /* max usable "stage" size on big screens */
+    /* base stage size used for fit math */
     --stageMax: 860px;
   }
 
@@ -42,8 +42,11 @@
   body{
     margin:0;
     min-height:100vh;
+
+    /* ✅ perfectly centered */
     display:grid;
     place-items:center;
+
     overflow:hidden;
     background: radial-gradient(circle at 50% 45%, var(--navy-2) 0%, var(--navy-1) 35%, var(--navy-0) 85%);
     animation: navyPulse 60s ease-in-out infinite;
@@ -81,9 +84,7 @@
   }
 
   /* =========================
-     CENTERED STAGE + RESPONSIVE SCALE
-     - Uses a single scale factor derived from viewport
-     - Keeps everything centered on all devices
+     CENTERED + RESPONSIVE SCALE
      ========================= */
   .wrap{
     width: min(var(--stageMax), 94vw);
@@ -91,10 +92,6 @@
     display:grid;
     place-items:center;
 
-    /* Responsive scale:
-       - shrinks on small screens
-       - stays crisp on big screens
-    */
     --fit: min(
       1,
       calc(94vw / var(--stageMax)),
@@ -105,12 +102,20 @@
     transform-origin: center center;
   }
 
+  /* keep it readable on tiny phones */
+  @media (max-width: 420px){
+    :root{ --uiScale: 0.70; }
+  }
+  @media (max-height: 620px){
+    :root{ --uiScale: 0.68; }
+  }
+
   /* =========================
      ENVELOPE
      ========================= */
   .envelope{
     position:relative;
-    width: 700px;                /* base size */
+    width: 700px;
     aspect-ratio: 16 / 10;
     border-radius: 22px;
     perspective: 1200px;
@@ -169,10 +174,7 @@
   }
 
   /* =========================
-     PAPER (NO SCROLL, NO CUTOFF)
-     - Height auto based on content
-     - We position it so the full poem fits
-     - We ALSO scale the font down on short screens
+     PAPER (all visible, no scroll)
      ========================= */
   .paper{
     position:absolute;
@@ -181,8 +183,6 @@
     bottom: 0.5%;
     z-index: 6;
     opacity: 0;
-
-    /* auto height from content */
     transform: translateY(52%) scale(0.985);
     transition:
       transform 1200ms cubic-bezier(.2,.9,.2,1),
@@ -212,8 +212,6 @@
       linear-gradient(180deg, #f2e6cb, #e4d1ab);
 
     box-shadow: 0 26px 76px rgba(0,0,0,0.58);
-
-    /* IMPORTANT: no scroll + no cut */
     overflow: visible;
 
     padding: 28px 28px 56px;
@@ -255,8 +253,6 @@
     color: var(--ink);
     text-align:center;
     letter-spacing: 0.03em;
-
-    /* Fits across devices without scrolling */
     font-size: clamp(15px, 1.25vw, 19px);
     line-height: 1.38;
   }
@@ -265,17 +261,6 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-strong);
-  }
-
-  /* Make sure it ALWAYS fits on short viewports:
-     scale text down a bit if height is tight */
-  @media (max-height: 720px){
-    .paper p{ font-size: clamp(14px, 1.1vw, 17px); line-height: 1.32; }
-    .paper-inner{ padding: 24px 24px 48px; }
-  }
-  @media (max-height: 620px){
-    .paper p{ font-size: clamp(13px, 1.0vw, 16px); line-height: 1.28; }
-    .paper-inner{ padding: 22px 22px 44px; }
   }
 
   /* =========================
@@ -317,7 +302,7 @@
     display:none;
   }
 
-  /* Open state: move paper up enough to show full poem */
+  /* Show full note and keep it centered when open */
   .envelope.open .env-flap{ transform: rotateX(180deg); }
   .envelope.open .paper{
     opacity: 1;
