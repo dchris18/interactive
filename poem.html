@@ -30,10 +30,8 @@
     --stroke: rgba(30, 20, 10, 0.18);
     --shadow: rgba(0,0,0,0.55);
 
-    /* ✅ BIGGER overall */
+    /* sizing + scaling */
     --uiScale: 0.92;
-
-    /* Design canvas used for EVEN scaling */
     --stageMax: 980px;
   }
 
@@ -42,11 +40,8 @@
   body{
     margin:0;
     min-height:100vh;
-
-    /* ✅ center always */
     display:grid;
     place-items:center;
-
     overflow:hidden;
     background: radial-gradient(circle at 50% 45%, var(--navy-2) 0%, var(--navy-1) 35%, var(--navy-0) 85%);
     animation: navyPulse 60s ease-in-out infinite;
@@ -86,8 +81,6 @@
 
   /* =========================
      EVEN SCALING WRAPPER
-     - scales uniformly with window resize
-     - works on mobile + desktop
      ========================= */
   .wrap{
     width: min(var(--stageMax), 96vw);
@@ -95,7 +88,6 @@
     display:grid;
     place-items:center;
 
-    /* uniform fit factor (same scale in X/Y) */
     --fit: min(
       1,
       calc(96vw / var(--stageMax)),
@@ -106,24 +98,16 @@
     transform-origin: center center;
   }
 
-  /* Mobile tuning: keep it big but safe */
-  @media (max-width: 480px){
-    :root{ --uiScale: 0.98; }
-  }
-  @media (max-height: 650px){
-    :root{ --uiScale: 0.90; }
-  }
-
   /* =========================
-     ENVELOPE
+     ENVELOPE (moved down)
      ========================= */
   .envelope{
     position:relative;
-    width: 780px;                 /* ✅ bigger than before */
+    width: 780px;
     aspect-ratio: 16 / 10;
     border-radius: 22px;
     perspective: 1200px;
-    transform: translateZ(0);
+    transform: translateY(70px) translateZ(0); /* ✅ moved down further */
   }
 
   .env-back,
@@ -178,7 +162,9 @@
   }
 
   /* =========================
-     PAPER (no scroll, all visible)
+     PAPER: TALLER + BIGGER TEXT
+     - We guarantee no scroll by increasing padding + vertical space,
+       then still shrinking a bit on very short screens.
      ========================= */
   .paper{
     position:absolute;
@@ -187,7 +173,8 @@
     bottom: 0.6%;
     z-index: 6;
     opacity: 0;
-    transform: translateY(52%) scale(0.985);
+
+    transform: translateY(54%) scale(0.985);
     transition:
       transform 1200ms cubic-bezier(.2,.9,.2,1),
       opacity 650ms ease;
@@ -198,26 +185,26 @@
     position:relative;
     border-radius: 16px;
     border: 1px solid rgba(40,25,10,0.28);
+
     background:
       repeating-linear-gradient(0deg, rgba(90,70,40,0.05) 0 1px, transparent 1px 4px),
       repeating-linear-gradient(90deg, rgba(90,70,40,0.035) 0 1px, transparent 1px 5px),
-
       radial-gradient(circle at 22% 30%, rgba(40,25,10,0.10) 0 2px, transparent 3px),
       radial-gradient(circle at 65% 42%, rgba(40,25,10,0.08) 0 1.5px, transparent 2.8px),
       radial-gradient(circle at 75% 68%, rgba(40,25,10,0.10) 0 2px, transparent 3.2px),
       radial-gradient(circle at 38% 78%, rgba(40,25,10,0.08) 0 1.6px, transparent 2.8px),
-
       radial-gradient(circle at 16% 18%, rgba(120,90,40,0.16), transparent 54%),
       radial-gradient(circle at 78% 22%, rgba(120,90,40,0.13), transparent 58%),
       radial-gradient(circle at 62% 86%, rgba(120,90,40,0.14), transparent 60%),
       radial-gradient(circle at 50% 55%, rgba(120,90,40,0.08), transparent 55%),
-
       linear-gradient(180deg, #f2e6cb, #e4d1ab);
 
     box-shadow: 0 26px 76px rgba(0,0,0,0.58);
-    overflow: visible;
-    padding: 30px 30px 58px;
+
+    /* ✅ make the note taller */
+    padding: 40px 34px 78px; /* more top/bottom space */
     box-sizing:border-box;
+    overflow: visible; /* no scroll */
   }
 
   .paper-inner::before{
@@ -256,15 +243,19 @@
     text-align:center;
     letter-spacing: 0.03em;
 
-    /* bigger, but still safe on small screens */
-    font-size: clamp(16px, 1.25vw, 20px);
+    /* ✅ bigger text */
+    font-size: clamp(18px, 1.35vw, 23px);
     line-height: 1.38;
   }
 
-  /* If the screen is short, keep it fitting without scrolling */
-  @media (max-height: 700px){
-    .paper p{ font-size: clamp(14px, 1.1vw, 18px); line-height: 1.32; }
-    .paper-inner{ padding: 26px 26px 50px; }
+  /* If height is short, keep everything visible without scroll */
+  @media (max-height: 760px){
+    .paper p{ font-size: clamp(16px, 1.2vw, 20px); line-height: 1.32; }
+    .paper-inner{ padding: 34px 30px 66px; }
+  }
+  @media (max-height: 640px){
+    .paper p{ font-size: clamp(15px, 1.05vw, 18px); line-height: 1.28; }
+    .paper-inner{ padding: 30px 28px 58px; }
   }
 
   .paper strong{
@@ -281,8 +272,8 @@
     left:50%;
     top:62%;
     transform: translate(-50%, -50%);
-    width: 94px;                  /* ✅ slightly bigger */
-    height: 94px;
+    width: 98px;
+    height: 98px;
     border-radius: 999px;
     border: none;
     padding:0;
@@ -312,11 +303,11 @@
     display:none;
   }
 
-  /* Open state */
+  /* Open state: raise paper enough to show the whole poem */
   .envelope.open .env-flap{ transform: rotateX(180deg); }
   .envelope.open .paper{
     opacity: 1;
-    transform: translateY(-18%) scale(1);
+    transform: translateY(-22%) scale(1); /* a touch higher */
     pointer-events:auto;
   }
   .envelope.open .reseal-hit{ display:block; }
