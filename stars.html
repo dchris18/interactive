@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -6,15 +6,26 @@
 <title>Constellation Message</title>
 
 <style>
+  /* If your file is actually .otf, keep it as .otf.
+     If it’s .ttf, swap the URL to DrukText-Heavy.ttf. */
+  @font-face{
+    font-family: 'DrukTextHeavy';
+    src:
+      url('Fonts/DrukText-Heavy.otf') format('opentype'),
+      url('Fonts/DrukText-Heavy.ttf') format('truetype');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+  }
+
   html, body { height: 100%; }
   body{
     margin:0;
     overflow:hidden;
     background: #040611;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    font-family: 'DrukTextHeavy', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   }
 
-  /* Subtle deep-space gradient */
   .sky{
     position:fixed;
     inset:0;
@@ -25,7 +36,6 @@
       linear-gradient(180deg, #040611 0%, #02030a 60%, #010109 100%);
   }
 
-  /* Slight animated haze like your cinematic sky vibe */
   .haze{
     position:fixed;
     inset:-20%;
@@ -54,13 +64,11 @@
     display:block;
   }
 
-  /* subtle vignette + film grain */
   .vignette{
     position:fixed;
     inset:-20%;
     pointer-events:none;
-    background:
-      radial-gradient(circle at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%);
+    background: radial-gradient(circle at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%);
     opacity: 0.85;
   }
   .grain{
@@ -80,9 +88,7 @@
 <body>
   <div class="sky"></div>
   <div class="haze"></div>
-
   <canvas id="c"></canvas>
-
   <div class="vignette"></div>
   <div class="grain"></div>
 
@@ -106,322 +112,116 @@
   addEventListener("resize", resize);
   resize();
 
+  // Mouse
+  const mouse = { x: W/2, y: H/2, vx: 0, vy: 0, active: false };
+  let lastMouse = { x: W/2, y: H/2 };
+
+  addEventListener("mousemove", (e) => {
+    mouse.active = true;
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.vx = mouse.x - lastMouse.x;
+    mouse.vy = mouse.y - lastMouse.y;
+    lastMouse = { x: mouse.x, y: mouse.y };
+  }, { passive:true });
+
+  addEventListener("mouseleave", () => {
+    mouse.active = false;
+    mouse.vx = 0; mouse.vy = 0;
+  });
+
+  function rand(a,b){ return a + Math.random()*(b-a); }
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+  function smoothstep(a,b,x){
+    const t = clamp((x-a)/(b-a), 0, 1);
+    return t*t*(3-2*t);
+  }
+  function lerp(a,b,t){ return a + (b-a)*t; }
+
   // -------------------------
   // Background star field
   // -------------------------
-  const STAR_COUNT = Math.floor((W * H) / 5200); // density
-  const stars = [];
-
-  function rand(a,b){ return a + Math.random()*(b-a); }
-
-  function buildStars(){
-    stars.length = 0;
+  const bgStars = [];
+  function buildBgStars(){
+    bgStars.length = 0;
     const count = Math.floor((W * H) / 5200);
     for(let i=0;i<count;i++){
-      stars.push({
+      bgStars.push({
         x: Math.random()*W,
         y: Math.random()*H,
         r: rand(0.6, 1.9),
         a: rand(0.12, 0.85),
-        tw: rand(0.8, 2.2),     // twinkle speed
-        ph: rand(0, Math.PI*2), // phase
+        tw: rand(0.8, 2.2),
+        ph: rand(0, Math.PI*2),
         drift: rand(0.004, 0.02),
       });
     }
   }
-  buildStars();
+  buildBgStars();
 
   // -------------------------
-  // Constellation text: points + lines
-  // We'll draw points positioned to form words, with small
-  // random jitter and connecting lines like a constellation map.
+  // Constellation message
   // -------------------------
   const message = "At the end of the day time moves on";
 
-  // A tiny built-in "dot font" grid for uppercase letters + space.
-  // Each letter is 5x7. We'll render as points (stars).
   const FONT = {
-    "A":[
-      "01110",
-      "10001",
-      "10001",
-      "11111",
-      "10001",
-      "10001",
-      "10001",
-    ],
-    "B":[
-      "11110",
-      "10001",
-      "10001",
-      "11110",
-      "10001",
-      "10001",
-      "11110",
-    ],
-    "C":[
-      "01111",
-      "10000",
-      "10000",
-      "10000",
-      "10000",
-      "10000",
-      "01111",
-    ],
-    "D":[
-      "11110",
-      "10001",
-      "10001",
-      "10001",
-      "10001",
-      "10001",
-      "11110",
-    ],
-    "E":[
-      "11111",
-      "10000",
-      "10000",
-      "11110",
-      "10000",
-      "10000",
-      "11111",
-    ],
-    "F":[
-      "11111",
-      "10000",
-      "10000",
-      "11110",
-      "10000",
-      "10000",
-      "10000",
-    ],
-    "G":[
-      "01111",
-      "10000",
-      "10000",
-      "10111",
-      "10001",
-      "10001",
-      "01111",
-    ],
-    "H":[
-      "10001",
-      "10001",
-      "10001",
-      "11111",
-      "10001",
-      "10001",
-      "10001",
-    ],
-    "I":[
-      "11111",
-      "00100",
-      "00100",
-      "00100",
-      "00100",
-      "00100",
-      "11111",
-    ],
-    "J":[
-      "11111",
-      "00010",
-      "00010",
-      "00010",
-      "00010",
-      "10010",
-      "01100",
-    ],
-    "K":[
-      "10001",
-      "10010",
-      "10100",
-      "11000",
-      "10100",
-      "10010",
-      "10001",
-    ],
-    "L":[
-      "10000",
-      "10000",
-      "10000",
-      "10000",
-      "10000",
-      "10000",
-      "11111",
-    ],
-    "M":[
-      "10001",
-      "11011",
-      "10101",
-      "10101",
-      "10001",
-      "10001",
-      "10001",
-    ],
-    "N":[
-      "10001",
-      "11001",
-      "10101",
-      "10011",
-      "10001",
-      "10001",
-      "10001",
-    ],
-    "O":[
-      "01110",
-      "10001",
-      "10001",
-      "10001",
-      "10001",
-      "10001",
-      "01110",
-    ],
-    "P":[
-      "11110",
-      "10001",
-      "10001",
-      "11110",
-      "10000",
-      "10000",
-      "10000",
-    ],
-    "Q":[
-      "01110",
-      "10001",
-      "10001",
-      "10001",
-      "10101",
-      "10010",
-      "01101",
-    ],
-    "R":[
-      "11110",
-      "10001",
-      "10001",
-      "11110",
-      "10100",
-      "10010",
-      "10001",
-    ],
-    "S":[
-      "01111",
-      "10000",
-      "10000",
-      "01110",
-      "00001",
-      "00001",
-      "11110",
-    ],
-    "T":[
-      "11111",
-      "00100",
-      "00100",
-      "00100",
-      "00100",
-      "00100",
-      "00100",
-    ],
-    "U":[
-      "10001",
-      "10001",
-      "10001",
-      "10001",
-      "10001",
-      "10001",
-      "01110",
-    ],
-    "V":[
-      "10001",
-      "10001",
-      "10001",
-      "10001",
-      "10001",
-      "01010",
-      "00100",
-    ],
-    "W":[
-      "10001",
-      "10001",
-      "10001",
-      "10101",
-      "10101",
-      "11011",
-      "10001",
-    ],
-    "X":[
-      "10001",
-      "10001",
-      "01010",
-      "00100",
-      "01010",
-      "10001",
-      "10001",
-    ],
-    "Y":[
-      "10001",
-      "10001",
-      "01010",
-      "00100",
-      "00100",
-      "00100",
-      "00100",
-    ],
-    "Z":[
-      "11111",
-      "00001",
-      "00010",
-      "00100",
-      "01000",
-      "10000",
-      "11111",
-    ],
+    "A":["01110","10001","10001","11111","10001","10001","10001"],
+    "B":["11110","10001","10001","11110","10001","10001","11110"],
+    "C":["01111","10000","10000","10000","10000","10000","01111"],
+    "D":["11110","10001","10001","10001","10001","10001","11110"],
+    "E":["11111","10000","10000","11110","10000","10000","11111"],
+    "F":["11111","10000","10000","11110","10000","10000","10000"],
+    "G":["01111","10000","10000","10111","10001","10001","01111"],
+    "H":["10001","10001","10001","11111","10001","10001","10001"],
+    "I":["11111","00100","00100","00100","00100","00100","11111"],
+    "J":["11111","00010","00010","00010","00010","10010","01100"],
+    "K":["10001","10010","10100","11000","10100","10010","10001"],
+    "L":["10000","10000","10000","10000","10000","10000","11111"],
+    "M":["10001","11011","10101","10101","10001","10001","10001"],
+    "N":["10001","11001","10101","10011","10001","10001","10001"],
+    "O":["01110","10001","10001","10001","10001","10001","01110"],
+    "P":["11110","10001","10001","11110","10000","10000","10000"],
+    "Q":["01110","10001","10001","10001","10101","10010","01101"],
+    "R":["11110","10001","10001","11110","10100","10010","10001"],
+    "S":["01111","10000","10000","01110","00001","00001","11110"],
+    "T":["11111","00100","00100","00100","00100","00100","00100"],
+    "U":["10001","10001","10001","10001","10001","10001","01110"],
+    "V":["10001","10001","10001","10001","10001","01010","00100"],
+    "W":["10001","10001","10001","10101","10101","11011","10001"],
+    "X":["10001","10001","01010","00100","01010","10001","10001"],
+    "Y":["10001","10001","01010","00100","00100","00100","00100"],
+    "Z":["11111","00001","00010","00100","01000","10000","11111"],
     " ":[
-      "00000",
-      "00000",
-      "00000",
-      "00000",
-      "00000",
-      "00000",
-      "00000",
+      "00000","00000","00000","00000","00000","00000","00000"
     ],
     ".":[
-      "00000",
-      "00000",
-      "00000",
-      "00000",
-      "00000",
-      "00110",
-      "00110",
+      "00000","00000","00000","00000","00000","00110","00110"
     ]
   };
 
   function toDotPoints(text, opts){
     const t = text.toUpperCase();
-    const scale = opts.scale;         // pixel per grid cell
-    const spacing = opts.spacing;     // extra between letters
-    const lineGap = opts.lineGap;     // between lines
-    const maxWidth = opts.maxWidth;   // wrap width in grid units
+    const scale = opts.scale;
+    const spacing = opts.spacing;
+    const lineGap = opts.lineGap;
+    const maxWidth = opts.maxWidth;
 
-    // simple word wrap on spaces
     const words = t.split(" ");
     const lines = [];
     let line = "";
-    function lineWidth(s){
-      // each char is 5 cols + 1 col gap, plus spacing
-      return s.length ? s.length * (5 + spacing) : 0;
-    }
+    function lineWidth(s){ return s.length ? s.length * (5 + spacing) : 0; }
+
     for(const w of words){
       const test = line ? (line + " " + w) : w;
       if(line && lineWidth(test) > maxWidth){
         lines.push(line);
         line = w;
-      }else{
+      } else {
         line = test;
       }
     }
     if(line) lines.push(line);
 
-    // build points
     const points = [];
     let yCursor = 0;
     for(const ln of lines){
@@ -431,10 +231,7 @@
         for(let r=0;r<7;r++){
           for(let c=0;c<5;c++){
             if(pat[r][c] === "1"){
-              points.push({
-                gx: xCursor + c,
-                gy: yCursor + r
-              });
+              points.push({ gx: xCursor + c, gy: yCursor + r });
             }
           }
         }
@@ -443,8 +240,6 @@
       yCursor += (7 + lineGap);
     }
 
-    // convert grid points to pixels and center
-    // find bounds
     let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
     for(const p of points){
       minX = Math.min(minX, p.gx);
@@ -459,63 +254,100 @@
     const pxH = gh * scale;
 
     const startX = (W - pxW)/2;
-    const startY = (H - pxH)/2 - H*0.12; // slightly higher like a title constellation
+    const startY = (H - pxH)/2 - H*0.12;
 
-    const out = points.map(p => ({
+    return points.map(p => ({
       x: startX + (p.gx - minX) * scale,
       y: startY + (p.gy - minY) * scale
     }));
-
-    return out;
   }
 
   let constellation = [];
   let links = [];
 
   function rebuildConstellation(){
-    // scale adjusts for screen size
     const scale = Math.max(9, Math.min(15, W/85));
-    constellation = toDotPoints(message, {
+    const anchors = toDotPoints(message, {
       scale,
       spacing: 2,
       lineGap: 5,
       maxWidth: Math.floor(W / (scale*0.95))
-    }).map(p => ({
-      x: p.x,
-      y: p.y,
-      // slight drift + twinkle
-      ox: p.x,
-      oy: p.y,
-      r: rand(1.2, 2.2),
-      a: rand(0.55, 0.98),
-      tw: rand(0.8, 1.8),
-      ph: rand(0, Math.PI*2),
-      jx: rand(-6, 6),
-      jy: rand(-6, 6),
-      drift: rand(0.002, 0.012),
-    }));
+    });
 
-    // Build constellation links: connect each point to 1–2 nearest neighbors within a threshold
+    constellation = [];
+
+    // Organic but controlled
+    const baseMaxOffset = Math.max(1.4, Math.min(2.8, W/520)); // gentle movement
+    const hoverRadius = Math.max(140, Math.min(260, W/6));
+
+    for(const p of anchors){
+      // soften the grid just a touch
+      const ax = p.x + rand(-1.2, 1.2);
+      const ay = p.y + rand(-1.2, 1.2);
+
+      // more stars per dot -> less rigid letter feel
+      const clusterCount = Math.floor(rand(4, 7));
+      for(let k=0;k<clusterCount;k++){
+        const spread = rand(0.0, 5.0);
+        const ang = rand(0, Math.PI*2);
+
+        const hx = ax + Math.cos(ang)*spread + rand(-0.45,0.45);
+        const hy = ay + Math.sin(ang)*spread + rand(-0.45,0.45);
+
+        // scatter direction is fixed per-star (prevents bulge/warping)
+        const scatAng = rand(0, Math.PI*2);
+        const scatX = Math.cos(scatAng);
+        const scatY = Math.sin(scatAng);
+
+        constellation.push({
+          hx, hy,
+          x: hx, y: hy,
+
+          // tiny “flow” drift (2 blended waves)
+          p1: rand(0, Math.PI*2),
+          p2: rand(0, Math.PI*2),
+          s1: rand(0.25, 0.75),
+          s2: rand(0.18, 0.55),
+          a1: rand(0.35, 0.95),
+          a2: rand(0.25, 0.75),
+
+          // hover scatter vector
+          scatX, scatY,
+
+          maxOffset: baseMaxOffset,
+          hoverRadius,
+          hover: 0,
+
+          r: rand(0.7, 1.9) * (k===0 ? 1.10 : 1.0),
+          a: rand(0.45, 0.95),
+          tw: rand(0.75, 1.8),
+          ph: rand(0, Math.PI*2),
+        });
+      }
+    }
+
+    // links (sparse + stable)
+    const nodeEvery = Math.max(6, Math.floor(constellation.length / 240));
+    const nodes = [];
+    for(let i=0;i<constellation.length;i+=nodeEvery) nodes.push(i);
+
     links = [];
-    const maxDist = Math.max(28, Math.min(44, W/28));
-    for(let i=0;i<constellation.length;i++){
+    const maxDist = Math.max(34, Math.min(60, W/22));
+
+    for(const i of nodes){
       const p = constellation[i];
-      // find nearest few
-      const dists = [];
-      for(let j=0;j<constellation.length;j++){
+      const candidates = [];
+      for(const j of nodes){
         if(i===j) continue;
         const q = constellation[j];
-        const dx = q.x - p.x;
-        const dy = q.y - p.y;
-        const d = Math.hypot(dx,dy);
-        if(d < maxDist) dists.push({j, d});
+        const d = Math.hypot(q.hx - p.hx, q.hy - p.hy);
+        if(d < maxDist) candidates.push({ j, d });
       }
-      dists.sort((a,b)=>a.d-b.d);
-      const k = Math.min(2, dists.length);
+      candidates.sort((a,b)=>a.d-b.d);
+      const k = Math.min(2, candidates.length);
       for(let t=0;t<k;t++){
-        const j = dists[t].j;
-        // prevent duplicates (i<j)
-        if(i < j) links.push([i,j,dists[t].d]);
+        const j = candidates[t].j;
+        if(i < j) links.push([i, j, candidates[t].d, maxDist]);
       }
     }
   }
@@ -524,26 +356,22 @@
 
   addEventListener("resize", () => {
     resize();
-    buildStars();
+    buildBgStars();
     rebuildConstellation();
   });
 
-  // -------------------------
-  // Draw helpers
-  // -------------------------
-  function drawStars(t){
-    for(const s of stars){
-      // tiny drift
+  function drawBg(t){
+    for(const s of bgStars){
       s.x += Math.cos(s.ph + t*s.drift) * 0.10;
       s.y += Math.sin(s.ph + t*s.drift) * 0.08;
-      // wrap
+
       if(s.x < -5) s.x = W+5;
       if(s.x > W+5) s.x = -5;
       if(s.y < -5) s.y = H+5;
       if(s.y > H+5) s.y = -5;
 
       const tw = 0.65 + 0.35*Math.sin(t*s.tw + s.ph);
-      const alpha = Math.max(0, Math.min(1, s.a * tw));
+      const alpha = clamp(s.a * tw, 0, 1);
 
       ctx.beginPath();
       ctx.fillStyle = `rgba(255,255,255,${alpha})`;
@@ -553,60 +381,98 @@
   }
 
   function drawConstellation(t){
-    // animate drift + twinkle
+    // “how much you’re sweeping past” affects scatter slightly
+    const speed = Math.hypot(mouse.vx, mouse.vy);
+    const motionBoost = clamp(speed / 20, 0, 1);
+
+    // update star targets and smoothly approach them (organic)
     for(const p of constellation){
-      const wobX = Math.sin(t*p.drift + p.ph) * p.jx * 0.10;
-      const wobY = Math.cos(t*p.drift + p.ph) * p.jy * 0.10;
-      p.x = p.ox + wobX;
-      p.y = p.oy + wobY;
+      const dx = p.hx - mouse.x;
+      const dy = p.hy - mouse.y;
+      const dist = Math.hypot(dx, dy);
+
+      p.hover = mouse.active ? (1 - smoothstep(0, p.hoverRadius, dist)) : 0;
+
+      // gentle flow around home
+      const driftX = Math.sin(t*p.s1 + p.p1) * p.a1 + Math.sin(t*p.s2 + p.p2) * p.a2;
+      const driftY = Math.cos(t*(p.s1*0.92) + p.p1) * p.a1 + Math.cos(t*(p.s2*1.05) + p.p2) * p.a2;
+
+      // tiny scatter on hover (fixed direction per star = no bulging)
+      const scatterAmt = p.hover * (0.55 + 0.75*motionBoost); // subtle
+      const scatterMax = 2.8 + 2.2*motionBoost;               // pixels
+      const scatterX = p.scatX * scatterMax * scatterAmt;
+      const scatterY = p.scatY * scatterMax * scatterAmt;
+
+      // target position
+      let tx = p.hx + driftX + scatterX;
+      let ty = p.hy + driftY + scatterY;
+
+      // clamp from home to preserve legibility
+      const ox = tx - p.hx;
+      const oy = ty - p.hy;
+      const od = Math.hypot(ox, oy);
+      const limit = p.maxOffset + p.hover*1.6; // a tiny extra room on hover
+      if(od > limit){
+        const m = limit / od;
+        tx = p.hx + ox*m;
+        ty = p.hy + oy*m;
+      }
+
+      // smooth approach (no spring)
+      const follow = 0.08 + 0.10*p.hover; // slightly faster on hover
+      p.x = lerp(p.x, tx, follow);
+      p.y = lerp(p.y, ty, follow);
     }
 
     // lines
     ctx.lineWidth = 1;
-    for(const [i,j,d] of links){
+    for(const [i,j,d,maxDist] of links){
       const a = constellation[i];
       const b = constellation[j];
-      const fade = 1 - (d / (Math.max(28, Math.min(44, W/28))));
-      const alpha = 0.18 * fade;
-      ctx.strokeStyle = `rgba(170,200,255,${alpha})`;
+
+      const fade = 1 - (d / maxDist);
+      const hoverLine = clamp((a.hover + b.hover) * 0.55, 0, 1);
+      const alpha = (0.10 * fade) + (0.10 * fade * hoverLine);
+
+      ctx.strokeStyle = `rgba(165,210,255,${alpha})`;
       ctx.beginPath();
       ctx.moveTo(a.x, a.y);
       ctx.lineTo(b.x, b.y);
       ctx.stroke();
     }
 
-    // points (stars)
+    // stars
     for(const p of constellation){
-      const tw = 0.72 + 0.28*Math.sin(t*p.tw + p.ph);
-      const alpha = p.a * tw;
+      // base twinkle
+      const tw = 0.82 + 0.18*Math.sin(t*p.tw + p.ph);
 
-      // soft glow
+      // slightly stronger twinkle on hover (but still subtle)
+      const hoverTw = 1 + (0.10 * p.hover);
+      const alpha = clamp(p.a * tw * hoverTw, 0, 1);
+
+      const glow = p.r * (1.9 + 0.9*p.hover);
+      const core = p.r * (1.0 + 0.20*p.hover);
+
       ctx.beginPath();
-      ctx.fillStyle = `rgba(210,230,255,${alpha*0.35})`;
-      ctx.arc(p.x, p.y, p.r*2.2, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(190,225,255,${alpha*(0.14 + 0.10*p.hover)})`;
+      ctx.arc(p.x, p.y, glow, 0, Math.PI*2);
       ctx.fill();
 
       ctx.beginPath();
       ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.arc(p.x, p.y, core, 0, Math.PI*2);
       ctx.fill();
     }
   }
 
-  // -------------------------
-  // Animation loop
-  // -------------------------
-  let last = performance.now();
   function frame(now){
-    const t = now * 0.001; // seconds
+    const t = now * 0.001;
 
     ctx.clearRect(0,0,W,H);
-
-    // fade layer for softer look
     ctx.fillStyle = "rgba(2,3,10,0.25)";
     ctx.fillRect(0,0,W,H);
 
-    drawStars(t);
+    drawBg(t);
     drawConstellation(t);
 
     requestAnimationFrame(frame);

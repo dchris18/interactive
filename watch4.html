@@ -1,103 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Clock4</title>
-<style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clock4</title>
+
+  <style>
     body {
-        margin: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: #fdfbd4;
-        overflow: hidden;
+      margin: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #fdfbd4;
+      overflow: hidden;
     }
 
     img {
-        position: absolute;
-        transition: width 2s ease;
-        user-select: none;
-        pointer-events: auto;
+      position: absolute;
+      user-select: none;
+      pointer-events: auto;
+      transition: width 2s ease, transform 150ms ease;
+      will-change: left, top, width, transform;
     }
 
     img:hover {
-        z-index: 10;
-        transform: scale(1.15);
+      z-index: 10;
+      transform: scale(1.15);
     }
-</style>
+  </style>
 </head>
+
 <body>
+  <script>
+    // --- Image list (make sure these files exist next to this HTML) ---
+    const imageSources = [
+      "watch1.png",
+      "watch2.png",
+      "watch3.png",
+      "watch4.png",
+      "watch5.png",
+      "watch6.png",
+      "watch7.png",
+      "watch8.png",
+      "watch9.png",
+      "watch10.png",
+    ];
 
-<script>
-const imageSources = [
-    "watch1.png",
-    "watch2.png",
-    "watch3.png",
-    "watch4.png",
-    "watch5.png"
-    "watch6.png"
-    "watch7.png"
-    "watch8.png"
-    "watch9.png"
-    "watch10.png"
-];
+    const images = [];
+    const screenW = () => window.innerWidth;
+    const screenH = () => window.innerHeight;
 
-const images = [];
+    function clampToScreen(obj) {
+      const size = obj.el.offsetWidth;
+      obj.x = Math.max(0, Math.min(obj.x, screenW() - size));
+      obj.y = Math.max(0, Math.min(obj.y, screenH() - size));
+    }
 
-const screenW = () => window.innerWidth;
-const screenH = () => window.innerHeight;
+    // Create images
+    imageSources.forEach((src) => {
+      const img = document.createElement("img");
+      img.src = src;
 
-imageSources.forEach(src => {
-    const img = document.createElement("img");
-    img.src = src;
+      const size = Math.random() * 150 + 80; // 80–230px
+      img.style.width = size + "px";
 
-    const size = Math.random() * 150 + 80;
-    img.style.width = size + "px";
-
-    const obj = {
+      const obj = {
         el: img,
         x: Math.random() * (screenW() - size),
         y: Math.random() * (screenH() - size),
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4
-    };
+        vx: (Math.random() - 0.5) * 0.9, // a bit faster for nicer bounces
+        vy: (Math.random() - 0.5) * 0.9,
+      };
 
-    img.style.left = obj.x + "px";
-    img.style.top = obj.y + "px";
+      img.style.left = obj.x + "px";
+      img.style.top = obj.y + "px";
 
-    images.push(obj);
-    document.body.appendChild(img);
-});
+      images.push(obj);
+      document.body.appendChild(img);
+    });
 
-// Movement loop
-function animate() {
-    images.forEach(obj => {
-        const img = obj.el;
-        const size = img.offsetWidth;
+    // --- Animation + collisions ---
+    function animate() {
+      // Move + wall bounce
+      images.forEach((obj) => {
+        const size = obj.el.offsetWidth;
 
         obj.x += obj.vx;
         obj.y += obj.vy;
 
-        // Bounce off edges
-        if (obj.x <= 0 || obj.x + size >= screenW()) obj.vx *= -1;
-        if (obj.y <= 0 || obj.y + size >= screenH()) obj.vy *= -1;
+        if (obj.x <= 0) {
+          obj.x = 0;
+          obj.vx *= -1;
+        } else if (obj.x + size >= screenW()) {
+          obj.x = screenW() - size;
+          obj.vx *= -1;
+        }
 
-        img.style.left = obj.x + "px";
-        img.style.top = obj.y + "px";
-    });
+        if (obj.y <= 0) {
+          obj.y = 0;
+          obj.vy *= -1;
+        } else if (obj.y + size >= screenH()) {
+          obj.y = screenH() - size;
+          obj.vy *= -1;
+        }
+      });
 
-    requestAnimationFrame(animate);
-}
+      // Image-image collisions (treat as circles)
+      for (let i = 0; i < images.length; i++) {
+        for (let j = i + 1; j < images.length; j++) {
+          const a = images[i];
+          const b = images[j];
 
-animate();
+          const sizeA = a.el.offsetWidth;
+          const sizeB = b.el.offsetWidth;
 
-// Random resize every few seconds
-setInterval(() => {
-    images.forEach(obj => {
+          const ax = a.x + sizeA / 2;
+          const ay = a.y + sizeA / 2;
+          const bx = b.x + sizeB / 2;
+          const by = b.y + sizeB / 2;
+
+          const dx = ax - bx;
+          const dy = ay - by;
+
+          const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+          const minDist = sizeA / 2 + sizeB / 2;
+
+          if (dist < minDist) {
+            // Push them apart so they don't overlap/stick
+            const overlap = minDist - dist;
+            const nx = dx / dist;
+            const ny = dy / dist;
+
+            a.x += nx * (overlap / 2);
+            a.y += ny * (overlap / 2);
+            b.x -= nx * (overlap / 2);
+            b.y -= ny * (overlap / 2);
+
+            // Simple elastic bounce: swap velocities
+            const tempVx = a.vx;
+            const tempVy = a.vy;
+            a.vx = b.vx;
+            a.vy = b.vy;
+            b.vx = tempVx;
+            b.vy = tempVy;
+
+            clampToScreen(a);
+            clampToScreen(b);
+          }
+        }
+      }
+
+      // Apply positions
+      images.forEach((obj) => {
+        obj.el.style.left = obj.x + "px";
+        obj.el.style.top = obj.y + "px";
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // Random resize every few seconds (and keep them inside the screen)
+    setInterval(() => {
+      images.forEach((obj) => {
         const newSize = Math.random() * 150 + 80;
         obj.el.style.width = newSize + "px";
-    });
-}, 3000);
-</script>
+        // after size changes, keep them on screen
+        setTimeout(() => clampToScreen(obj), 0);
+      });
+    }, 3000);
 
+    // If the window resizes, keep everything visible
+    window.addEventListener("resize", () => {
+      images.forEach((obj) => clampToScreen(obj));
+    });
+  </script>
 </body>
 </html>

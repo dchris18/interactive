@@ -1,33 +1,56 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Real-Time Digital Clock</title>
+
 <style>
-body {
-    margin:0;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-family: 'Arial', sans-serif;
-    transition: background 1s linear;
-    color:white;
+@font-face {
+    font-family: 'DrukCondSuper';
+    src: url('fonts/DrukCond-Super.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
 }
 
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 1s linear;
+}
+
+/* Clock never shifts: fixed width + tabular numerals */
 .clock {
-    font-size: clamp(48px, 10vw, 100px);
-    background: rgba(0,0,0,0.3);
-    padding: 20px 40px;
-    border-radius: 20px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    text-align:center;
+    font-family: 'DrukCondSuper', sans-serif;
+
+    /* EVEN bigger */
+    font-size: clamp(130px, 22vw, 320px);
+
+    /* keep the whole string centered and stable */
+    width: 8ch;                 /* "00:00:00" is 8 characters */
+    text-align: center;
+    line-height: 1;
+
+    /* color + subtle shadow */
+    color: #cfe9ff;
+    text-shadow:
+        0 6px 18px rgba(0, 0, 0, 0.45),
+        0 0 10px rgba(180, 220, 255, 0.22);
+
+    /* tighter spacing for digits + colons */
+    letter-spacing: 0px;
+
+    /* try to force equal-width numerals if supported */
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "kern" 1;
 }
 </style>
 </head>
-<body>
 
+<body>
 <div class="clock" id="clock">00:00:00</div>
 
 <script>
@@ -35,36 +58,29 @@ const clock = document.getElementById("clock");
 
 function updateClock() {
     const now = new Date();
-    const hours = now.getHours().toString().padStart(2,'0');
-    const minutes = now.getMinutes().toString().padStart(2,'0');
-    const seconds = now.getSeconds().toString().padStart(2,'0');
+    const hours = String(now.getHours()).padStart(2,'0');
+    const minutes = String(now.getMinutes()).padStart(2,'0');
+    const seconds = String(now.getSeconds()).padStart(2,'0');
 
-    // Update clock display
     clock.textContent = `${hours}:${minutes}:${seconds}`;
 
-    // Background color based on time
-    // Map 0-24 hours to 0-1
-    const timeFraction = now.getHours()/24 + now.getMinutes()/(24*60) + now.getSeconds()/(24*3600);
+    const timeFraction =
+        now.getHours()/24 +
+        now.getMinutes()/(24*60) +
+        now.getSeconds()/(24*3600);
 
-    // Gradient from black at midnight to blue at noon and back
-    // We'll use HSL: 240deg is blue, 0deg is black
-    // We'll interpolate lightness for smooth effect
     let lightness;
     if (timeFraction <= 0.5) {
-        // Midnight -> Noon
-        lightness = 0 + (80-0)*(timeFraction/0.5);
+        lightness = 80 * (timeFraction / 0.5);
     } else {
-        // Noon -> Midnight
-        lightness = 80 - (80*(timeFraction-0.5)/0.5);
+        lightness = 80 - (80 * (timeFraction - 0.5) / 0.5);
     }
 
     document.body.style.background = `hsl(210, 100%, ${lightness}%)`;
 }
 
-// Update every second
 updateClock();
 setInterval(updateClock, 1000);
 </script>
-
 </body>
 </html>
