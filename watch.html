@@ -68,52 +68,52 @@
     mix-blend-mode: soft-light;
   }
 
-  /* ✅ Scaled-down headline + responsive positioning */
-  .quote{
-    position:fixed;
-    top: clamp(12px, 2.2vh, 22px);
-    left:50%;
-    transform:translateX(-50%);
+  /* ✅ Layout wrapper that reserves space so text + watch never collide */
+  .layout{
+    position:relative;
     width:min(980px, 92vw);
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: clamp(18px, 4vh, 44px);         /* space between headline and watch */
+    padding-top: clamp(18px, 5vh, 54px); /* keeps headline off the top edge */
+    padding-bottom: clamp(14px, 4vh, 44px);
+    box-sizing:border-box;
+  }
+
+  /* ✅ Bigger text, but still responsive and contained */
+  .quote{
+    width:100%;
     text-align:center;
 
     font-family:"DrukCondSuper", system-ui, sans-serif;
     font-weight:400;
     text-transform:uppercase;
 
-    /* was huge; now much smaller and still responsive */
-    font-size: clamp(26px, 3.4vw, 56px);
-    line-height: 0.98;
-    letter-spacing: 0.06em;
+    /* bigger than before */
+    font-size: clamp(34px, 4.6vw, 78px);
+    line-height:0.98;
+    letter-spacing:0.06em;
 
     color:#2a3550;
     text-shadow:
       0 8px 42px rgba(0,0,0,0.75),
       0 0 70px rgba(255,255,255,0.10);
+
+    /* prevents overflow collisions on tiny screens */
+    padding: 0 2vw;
+    box-sizing:border-box;
   }
 
-  .wrap{
-    width:100%;
-    height:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-
-  /* ✅ Make stage truly responsive and not oversized */
   .stage{
     position:relative;
-
-    /* was 760x860-ish; now significantly smaller + scales by viewport */
     width: min(460px, 86vw);
-    height: min(520px, 74vh);
-
+    height: min(520px, 68vh); /* slightly shorter so it stays below text */
     display:flex;
     align-items:center;
     justify-content:center;
-
-    /* was translateY(120px); now responsive so it doesn’t break on phones */
-    transform: translateY(clamp(35px, 8vh, 90px));
   }
 
   /* ===== band/strap ===== */
@@ -122,7 +122,7 @@
     top:50%;
     left:50%;
     width:170vw;
-    height: clamp(90px, 14vh, 150px); /* responsive strap thickness */
+    height: clamp(90px, 14vh, 150px);
     transform: translate(-50%,-50%);
     z-index:1;
     pointer-events:none;
@@ -178,7 +178,6 @@
     mask: linear-gradient(180deg,#000 0%,#000 16%,transparent 40%,transparent 60%,#000 84%,#000 100%);
   }
 
-  /* ✅ Slots made responsive so they don’t fly off-screen */
   .slot{
     position:absolute;
     top:50%;
@@ -196,9 +195,8 @@
   .slot.left{ left: clamp(-40px, -8vw, -10px); }
   .slot.right{ right: clamp(-40px, -8vw, -10px); }
 
-  /* ✅ Watch scaled down a lot, still responsive */
   .watch{
-    width: min(320px, 64vw); /* was 520px/78vw */
+    width: min(320px, 64vw);
     aspect-ratio:1/1;
     position:relative;
     z-index:3;
@@ -286,8 +284,6 @@
     background: linear-gradient(180deg, rgba(40,35,30,0.95), rgba(10,8,7,0.95));
     box-shadow: 0 12px 30px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.10);
   }
-
-  /* ✅ Hands scale with watch size (not fixed px thickness) */
   .hand.hour{   width: clamp(6px, 1.2vw, 9px);  height:28%; }
   .hand.minute{ width: clamp(4px, 0.9vw, 7px);  height:40%; }
   .hand.second{
@@ -363,19 +359,28 @@
     mix-blend-mode:screen;
   }
 
-  /* ✅ Extra safety for very small screens */
-  @media (max-width: 420px){
-    body{ overflow:hidden; }
-    .stage{ transform: translateY(clamp(28px, 7vh, 70px)); }
-    .slot{ opacity:0.5; }
+  /* ✅ If the screen is short, tighten spacing so everything still fits */
+  @media (max-height: 680px){
+    .layout{
+      gap: clamp(12px, 2.6vh, 26px);
+      padding-top: clamp(12px, 3vh, 28px);
+    }
+    .stage{
+      height: min(480px, 62vh);
+    }
+  }
+
+  /* ✅ Tiny phones: slightly reduce headline so it never overlaps */
+  @media (max-width: 360px){
+    .quote{ font-size: clamp(30px, 5.2vw, 62px); }
   }
 </style>
 </head>
 
 <body>
-  <div class="quote">A BROKEN CLOCK IS STILL RIGHT TWICE A DAY</div>
+  <div class="layout">
+    <div class="quote">A BROKEN CLOCK IS STILL RIGHT TWICE A DAY</div>
 
-  <div class="wrap">
     <div class="stage">
       <div class="band" aria-hidden="true">
         <div class="strap"></div>
