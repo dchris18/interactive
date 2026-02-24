@@ -30,9 +30,14 @@
     --stroke: rgba(30, 20, 10, 0.18);
     --shadow: rgba(0,0,0,0.55);
 
-    /* sizing + scaling */
-    --uiScale: 0.92;
+    /* ✅ slightly larger overall */
+    --uiScale: 0.96;
+
+    /* design canvas used for even scaling */
     --stageMax: 980px;
+
+    /* ✅ push the whole piece down */
+    --downShift: 110px;
   }
 
   html, body{ height:100%; }
@@ -43,8 +48,10 @@
     display:grid;
     place-items:center;
     overflow:hidden;
+
     background: radial-gradient(circle at 50% 45%, var(--navy-2) 0%, var(--navy-1) 35%, var(--navy-0) 85%);
     animation: navyPulse 60s ease-in-out infinite;
+
     font-family: "DrukTextHeavy", Georgia, "Times New Roman", serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -80,26 +87,50 @@
   }
 
   /* =========================
-     EVEN SCALING WRAPPER
+     EVEN SCALING WRAPPER (ALWAYS CENTERED)
+     - The "hugging right" usually happens when the scaled element
+       has a width that doesn't match its transform box.
+     - Fix: make wrap full-width grid + center the stage inside it.
      ========================= */
   .wrap{
+    width: 100vw;
+    height: 100vh;
+    display:grid;
+    place-items:center;
+    overflow:hidden;
+  }
+
+  .stage{
     width: min(var(--stageMax), 96vw);
     height: min(var(--stageMax), 94vh);
     display:grid;
     place-items:center;
 
+    /* uniform fit factor */
     --fit: min(
       1,
       calc(96vw / var(--stageMax)),
       calc(94vh / var(--stageMax))
     );
 
-    transform: scale(calc(var(--fit) * var(--uiScale)));
+    /* ✅ scale evenly AND shift down, while staying centered */
+    transform: translateY(var(--downShift)) scale(calc(var(--fit) * var(--uiScale)));
     transform-origin: center center;
+
+    /* helps prevent subpixel drift that can look like "right hugging" */
+    will-change: transform;
+  }
+
+  /* Mobile tuning: keep it centered + readable */
+  @media (max-width: 480px){
+    :root{ --uiScale: 0.98; --downShift: 90px; }
+  }
+  @media (max-height: 650px){
+    :root{ --uiScale: 0.92; --downShift: 70px; }
   }
 
   /* =========================
-     ENVELOPE (moved down)
+     ENVELOPE
      ========================= */
   .envelope{
     position:relative;
@@ -107,7 +138,7 @@
     aspect-ratio: 16 / 10;
     border-radius: 22px;
     perspective: 1200px;
-    transform: translateY(70px) translateZ(0); /* ✅ moved down further */
+    transform: translateZ(0);
   }
 
   .env-back,
@@ -162,9 +193,7 @@
   }
 
   /* =========================
-     PAPER: TALLER + BIGGER TEXT
-     - We guarantee no scroll by increasing padding + vertical space,
-       then still shrinking a bit on very short screens.
+     PAPER: taller + bigger text, no scroll
      ========================= */
   .paper{
     position:absolute;
@@ -173,7 +202,6 @@
     bottom: 0.6%;
     z-index: 6;
     opacity: 0;
-
     transform: translateY(54%) scale(0.985);
     transition:
       transform 1200ms cubic-bezier(.2,.9,.2,1),
@@ -200,11 +228,10 @@
       linear-gradient(180deg, #f2e6cb, #e4d1ab);
 
     box-shadow: 0 26px 76px rgba(0,0,0,0.58);
+    overflow: visible;
 
-    /* ✅ make the note taller */
-    padding: 40px 34px 78px; /* more top/bottom space */
+    padding: 42px 36px 82px; /* a touch taller */
     box-sizing:border-box;
-    overflow: visible; /* no scroll */
   }
 
   .paper-inner::before{
@@ -243,19 +270,19 @@
     text-align:center;
     letter-spacing: 0.03em;
 
-    /* ✅ bigger text */
-    font-size: clamp(18px, 1.35vw, 23px);
+    /* ✅ slightly bigger text */
+    font-size: clamp(19px, 1.4vw, 24px);
     line-height: 1.38;
   }
 
-  /* If height is short, keep everything visible without scroll */
+  /* keep fit on short screens without scrolling */
   @media (max-height: 760px){
-    .paper p{ font-size: clamp(16px, 1.2vw, 20px); line-height: 1.32; }
-    .paper-inner{ padding: 34px 30px 66px; }
+    .paper p{ font-size: clamp(17px, 1.25vw, 21px); line-height: 1.32; }
+    .paper-inner{ padding: 36px 32px 72px; }
   }
   @media (max-height: 640px){
-    .paper p{ font-size: clamp(15px, 1.05vw, 18px); line-height: 1.28; }
-    .paper-inner{ padding: 30px 28px 58px; }
+    .paper p{ font-size: clamp(16px, 1.1vw, 19px); line-height: 1.28; }
+    .paper-inner{ padding: 32px 30px 64px; }
   }
 
   .paper strong{
@@ -272,8 +299,8 @@
     left:50%;
     top:62%;
     transform: translate(-50%, -50%);
-    width: 98px;
-    height: 98px;
+    width: 100px;
+    height: 100px;
     border-radius: 999px;
     border: none;
     padding:0;
@@ -303,11 +330,10 @@
     display:none;
   }
 
-  /* Open state: raise paper enough to show the whole poem */
   .envelope.open .env-flap{ transform: rotateX(180deg); }
   .envelope.open .paper{
     opacity: 1;
-    transform: translateY(-22%) scale(1); /* a touch higher */
+    transform: translateY(-22%) scale(1);
     pointer-events:auto;
   }
   .envelope.open .reseal-hit{ display:block; }
@@ -321,98 +347,100 @@
 
 <body>
   <div class="wrap">
-    <div class="envelope" id="envelope" aria-expanded="false">
-      <div class="env-back"></div>
+    <div class="stage">
+      <div class="envelope" id="envelope" aria-expanded="false">
+        <div class="env-back"></div>
 
-      <div class="paper" id="paper" aria-hidden="true">
-        <div class="paper-inner">
-          <p>
-            When as a child I laughed and wept,<br>
-            Time <strong>CREPT.</strong><br><br>
+        <div class="paper" id="paper" aria-hidden="true">
+          <div class="paper-inner">
+            <p>
+              When as a child I laughed and wept,<br>
+              Time <strong>CREPT.</strong><br><br>
 
-            When as a youth I waxed more bold,<br>
-            Time <strong>STROLLED.</strong><br><br>
+              When as a youth I waxed more bold,<br>
+              Time <strong>STROLLED.</strong><br><br>
 
-            When I became a full grown man,<br>
-            Time <strong>RAN.</strong><br><br>
+              When I became a full grown man,<br>
+              Time <strong>RAN.</strong><br><br>
 
-            When older still I daily grew,<br>
-            Time <strong>FLEW.</strong><br><br>
+              When older still I daily grew,<br>
+              Time <strong>FLEW.</strong><br><br>
 
-            Soon I shall find, in passing on,<br>
-            Time <strong>GONE.</strong><br><br>
+              Soon I shall find, in passing on,<br>
+              Time <strong>GONE.</strong><br><br>
 
-            O Christ! wilt Thou have saved me then?<br><br>
+              O Christ! wilt Thou have saved me then?<br><br>
 
-            <strong>AMEN.</strong>
-          </p>
+              <strong>AMEN.</strong>
+            </p>
+          </div>
         </div>
+
+        <div class="env-front"></div>
+
+        <div class="env-flap" id="flap">
+          <button class="seal" id="sealBtn" type="button" aria-label="Open or reseal envelope">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <defs>
+                <radialGradient id="waxGrad" cx="35%" cy="26%" r="78%">
+                  <stop offset="0%" stop-color="#d24a51"/>
+                  <stop offset="38%" stop-color="#8a0f17"/>
+                  <stop offset="100%" stop-color="#3d0407"/>
+                </radialGradient>
+
+                <filter id="waxRough" x="-20%" y="-20%" width="140%" height="140%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="11" result="noise"/>
+                  <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G"/>
+                </filter>
+
+                <filter id="emboss" x="-25%" y="-25%" width="150%" height="150%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="blur"/>
+                  <feSpecularLighting in="blur" surfaceScale="3.2" specularConstant="0.72" specularExponent="22" lighting-color="#ffffff" result="spec">
+                    <feDistantLight azimuth="320" elevation="45"/>
+                  </feSpecularLighting>
+                  <feComposite in="spec" in2="SourceAlpha" operator="in" result="spec2"/>
+                  <feComposite in="SourceGraphic" in2="spec2" operator="arithmetic" k1="1" k2="0.65" k3="0.22" k4="0"/>
+                </filter>
+
+                <radialGradient id="stampShadow" cx="45%" cy="44%" r="62%">
+                  <stop offset="0%" stop-color="rgba(0,0,0,0.34)"/>
+                  <stop offset="72%" stop-color="rgba(0,0,0,0.00)"/>
+                </radialGradient>
+
+                <radialGradient id="stampHi" cx="40%" cy="36%" r="62%">
+                  <stop offset="0%" stop-color="rgba(255,255,255,0.14)"/>
+                  <stop offset="72%" stop-color="rgba(255,255,255,0.00)"/>
+                </radialGradient>
+              </defs>
+
+              <g filter="url(#waxRough)">
+                <circle cx="50" cy="50" r="40" fill="url(#waxGrad)"/>
+                <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
+              </g>
+
+              <g filter="url(#emboss)">
+                <circle cx="50" cy="50" r="39" fill="transparent"/>
+              </g>
+
+              <circle cx="50" cy="52" r="23" fill="url(#stampShadow)" opacity="0.95"/>
+              <circle cx="50" cy="50" r="23" fill="url(#stampHi)" opacity="0.85"/>
+
+              <circle cx="50" cy="51" r="18" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1.5" opacity="0.8"/>
+              <circle cx="50" cy="52" r="18" fill="none" stroke="rgba(0,0,0,0.14)" stroke-width="1.5" opacity="0.9"/>
+
+              <text x="50" y="58" text-anchor="middle"
+                    font-family="Georgia, 'Times New Roman', serif"
+                    font-size="22"
+                    fill="rgba(255,255,255,0.88)"
+                    style="letter-spacing:2px;">
+                ✶
+              </text>
+            </svg>
+          </button>
+        </div>
+
+        <button class="reseal-hit" id="resealBtn" type="button" aria-label="Reseal envelope base"></button>
       </div>
-
-      <div class="env-front"></div>
-
-      <div class="env-flap" id="flap">
-        <button class="seal" id="sealBtn" type="button" aria-label="Open or reseal envelope">
-          <svg viewBox="0 0 100 100" aria-hidden="true">
-            <defs>
-              <radialGradient id="waxGrad" cx="35%" cy="26%" r="78%">
-                <stop offset="0%" stop-color="#d24a51"/>
-                <stop offset="38%" stop-color="#8a0f17"/>
-                <stop offset="100%" stop-color="#3d0407"/>
-              </radialGradient>
-
-              <filter id="waxRough" x="-20%" y="-20%" width="140%" height="140%">
-                <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="11" result="noise"/>
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G"/>
-              </filter>
-
-              <filter id="emboss" x="-25%" y="-25%" width="150%" height="150%">
-                <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="blur"/>
-                <feSpecularLighting in="blur" surfaceScale="3.2" specularConstant="0.72" specularExponent="22" lighting-color="#ffffff" result="spec">
-                  <feDistantLight azimuth="320" elevation="45"/>
-                </feSpecularLighting>
-                <feComposite in="spec" in2="SourceAlpha" operator="in" result="spec2"/>
-                <feComposite in="SourceGraphic" in2="spec2" operator="arithmetic" k1="1" k2="0.65" k3="0.22" k4="0"/>
-              </filter>
-
-              <radialGradient id="stampShadow" cx="45%" cy="44%" r="62%">
-                <stop offset="0%" stop-color="rgba(0,0,0,0.34)"/>
-                <stop offset="72%" stop-color="rgba(0,0,0,0.00)"/>
-              </radialGradient>
-
-              <radialGradient id="stampHi" cx="40%" cy="36%" r="62%">
-                <stop offset="0%" stop-color="rgba(255,255,255,0.14)"/>
-                <stop offset="72%" stop-color="rgba(255,255,255,0.00)"/>
-              </radialGradient>
-            </defs>
-
-            <g filter="url(#waxRough)">
-              <circle cx="50" cy="50" r="40" fill="url(#waxGrad)"/>
-              <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
-            </g>
-
-            <g filter="url(#emboss)">
-              <circle cx="50" cy="50" r="39" fill="transparent"/>
-            </g>
-
-            <circle cx="50" cy="52" r="23" fill="url(#stampShadow)" opacity="0.95"/>
-            <circle cx="50" cy="50" r="23" fill="url(#stampHi)" opacity="0.85"/>
-
-            <circle cx="50" cy="51" r="18" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1.5" opacity="0.8"/>
-            <circle cx="50" cy="52" r="18" fill="none" stroke="rgba(0,0,0,0.14)" stroke-width="1.5" opacity="0.9"/>
-
-            <text x="50" y="58" text-anchor="middle"
-                  font-family="Georgia, 'Times New Roman', serif"
-                  font-size="22"
-                  fill="rgba(255,255,255,0.88)"
-                  style="letter-spacing:2px;">
-              ✶
-            </text>
-          </svg>
-        </button>
-      </div>
-
-      <button class="reseal-hit" id="resealBtn" type="button" aria-label="Reseal envelope base"></button>
     </div>
   </div>
 
