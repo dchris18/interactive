@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Mountain Quote</title>
 
 <style>
 @font-face {
   font-family: "DrukTextHeavy";
-  src: url("./fonts/DrukText-Heavy.otf") format("opentype");
-  font-weight: normal;
+  src: url("./Fonts/DrukText-Heavy.otf") format("opentype");
+  font-weight: 400;
   font-style: normal;
+  font-display: swap;
 }
 
 html, body {
@@ -26,11 +27,7 @@ body {
 .scrim {
   position: fixed;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(0,0,0,0.2),
-    rgba(0,0,0,0.0) 60%
-  );
+  background: linear-gradient(135deg, rgba(0,0,0,0.2), rgba(0,0,0,0.0) 60%);
   pointer-events: none;
 }
 
@@ -38,16 +35,12 @@ body {
   position: fixed;
   top: clamp(20px, 3vw, 40px);
   left: clamp(20px, 3vw, 40px);
-
   font-family: "DrukTextHeavy", sans-serif;
   color: #10241b;
-
   font-size: clamp(40px, 6vw, 100px);
   line-height: 1.05;
-
   max-width: 90vw;
   white-space: pre-line;
-
   text-shadow: 2px 2px 6px rgba(0,0,0,0.35);
 }
 </style>
@@ -68,11 +61,8 @@ let i = 0;
 function typeNext() {
   el.textContent = text.slice(0, i + 1);
   i++;
-  if (i < text.length) {
-    setTimeout(typeNext, delay);
-  }
+  if (i < text.length) setTimeout(typeNext, delay);
 }
-
 typeNext();
 </script>
 </body>
